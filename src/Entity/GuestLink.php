@@ -6,6 +6,8 @@ use App\Repository\GuestLinkRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Table(name: '`guest_links`')]
 #[ORM\Entity(repositoryClass: GuestLinkRepository::class)]
@@ -16,8 +18,8 @@ class GuestLink
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 32, nullable: false)]
-    private ?string $nanoId = null;
+    #[ORM\Column(name: 'uniq_link_id', type: UlidType::NAME, unique: true)]
+    private ?Ulid $uniqLinkId = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $label = null;
@@ -59,14 +61,14 @@ class GuestLink
         return $this->id;
     }
 
-    public function getNanoId(): ?string
+    public function getUniqLinkId(): ?Ulid
     {
-        return $this->nanoId;
+        return $this->uniqLinkId;
     }
 
-    public function setNanoId(string $nanoId): static
+    public function setUniqLinkId(?Ulid $uniqLinkId): static
     {
-        $this->nanoId = $nanoId;
+        $this->uniqLinkId = $uniqLinkId;
 
         return $this;
     }

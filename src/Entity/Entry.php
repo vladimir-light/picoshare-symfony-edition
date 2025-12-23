@@ -7,6 +7,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 
 #[ORM\Table(name: '`entries`')]
@@ -18,8 +20,8 @@ class Entry
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 32, nullable: false)]
-    private ?string $nanoId = null;
+    #[ORM\Column(type: UlidType::NAME, unique: true, name: 'uniq_link_id')]
+    private ?Ulid $uniqLinkId = null;
 
     #[ORM\Column(length: 255, name: '`filename`', nullable: false)]
     private ?string $filename = null;
@@ -187,14 +189,14 @@ class Entry
         return $this;
     }
 
-    public function getNanoId(): ?string
+    public function getUniqLinkId(): ?Ulid
     {
-        return $this->nanoId;
+        return $this->uniqLinkId;
     }
 
-    public function setNanoId(string $nanoId): static
+    public function setUniqLinkId(?Ulid $uniqLinkId): static
     {
-        $this->nanoId = $nanoId;
+        $this->uniqLinkId = $uniqLinkId;
 
         return $this;
     }
