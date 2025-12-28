@@ -1,0 +1,180 @@
+{% extends 'base_bulma.html.twig' %}
+
+
+{% block on_page_style_tag %}
+    <style>
+        /* Light/Dark Mode CSS Variables */
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #4a4a4a;
+            --box-bg: #ffffff;
+            --box-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1), 0 0px 0 1px rgba(10, 10, 10, 0.02);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --box-bg: #2a2a2a;
+            --box-shadow: 0 0.5em 1em -0.125em rgba(0, 0, 0, 0.3), 0 0px 0 1px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .box {
+            background-color: var(--box-bg);
+            box-shadow: var(--box-shadow);
+        }
+
+        /* Center the login form vertically and horizontally */
+        html, body {
+            height: 100%;
+        }
+
+        .login-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        /* Theme toggle button for login page */
+        .theme-toggle-login {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            cursor: pointer;
+            background-color: rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            color: var(--text-color);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .theme-toggle-login:hover {
+            background-color: rgba(0, 0, 0, 0.15);
+        }
+
+        [data-theme="dark"] .theme-toggle-login {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        [data-theme="dark"] .theme-toggle-login:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <body data-theme="light">
+    <!-- Theme toggle button -->
+    <button class="theme-toggle-login" id="themeToggle" title="Toggle light/dark mode">
+        <span id="themeIcon">🌙</span>
+    </button>
+
+    <div class="login-wrapper">
+        <div class="container">
+            <div class="columns is-centered">
+                <div class="column is-5-tablet is-4-desktop">
+                    <div class="box">
+                        <!-- Logo or Title -->
+                        <div class="has-text-centered mb-5">
+                            <h1 class="title is-3">{{ APP_NAME }}</h1>
+                            <p class="subtitle is-6">Please sign in to continue</p>
+                        </div>
+
+                        <!-- Login Form -->
+                        <form action="{{- path('pico_admin_login') -}}" method="POST">
+                            <!-- Email Field -->
+                            <div class="field">
+                                <label class="label" for="username">Email</label>
+                                <div class="control">
+                                    <input class="input" type="email" id="username" name="_username" placeholder="your@email.com" required>
+                                </div>
+                            </div>
+
+                            <!-- Password Field -->
+                            <div class="field">
+                                <label class="label" for="password">Password</label>
+                                <div class="control">
+                                    <input class="input" type="password" id="password" name="_password" placeholder="Your password" required>
+                                </div>
+                            </div>
+
+                            <!-- Remember Me Checkbox -->
+                            <div class="field">
+                                <label class="checkbox">
+                                    <input type="checkbox" name="remember">
+                                    Remember me
+                                </label>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="field">
+                                <div class="control">
+                                    <button class="button is-primary is-fullwidth" type="submit">
+                                        Sign In
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Additional Links -->
+                            <div class="field">
+                                <p class="has-text-centered">
+                                    <a href="/forgot-password">Forgot password?</a>
+                                </p>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Register Link (optional) -->
+                    <div class="has-text-centered mt-4">
+                        <p>
+                            Don't have an account? <a href="/register">Sign up</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </body>
+{% endblock %}
+
+{% block page_end_javascript %}
+
+    <!-- Theme toggle JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            debugger;
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            const body = document.body;
+
+            // Load saved theme or default to light
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            body.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+
+            // Toggle theme on button click
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = body.getAttribute('data-theme');
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+                body.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIcon(newTheme);
+            });
+
+            // Update icon based on theme
+            function updateThemeIcon(theme) {
+                themeIcon.textContent = theme === 'light' ? '🌙' : '☀️';
+            }
+        });
+    </script>
+{% endblock %}

@@ -5,16 +5,37 @@ security:
 
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        users_in_memory: { memory: null }
+        users_in_memory:
+            memory:
+                users:
+                    pico_admin:
+                        #Symfony\Component\PasswordHasher\Hasher\MigratingPasswordHasher
+                        password: '$2y$13$JKvWKAh./ZD79xpW3lJv/Olq7ws2oXySIcV50/Lv3xhx9fgtbvPqq' # somesecretpass
+                        roles: [ 'ROLE_ADMIN', 'ROLE_SUPER_ADMIN' ]
 
     firewalls:
         dev:
             # Ensure dev tools and static assets are always allowed
-            pattern: ^/(_profiler|_wdt|assets|build)/
+            pattern:
+                - ^/_profiler/
+                - ^/_wdt/
+                - ^/css/
+                - ^/images/
+                - ^/assets/
+                - ^/build/
+                - ^/js/
             security: false
         main:
             lazy: true
             provider: users_in_memory
+            form_login:
+                login_path: pico_admin_login
+                check_path: pico_admin_login
+                enable_csrf: true
+            logout:
+                path: pico_admin_logout
+                # where to redirect after logout
+                target: pico_home
 
             # Activate different ways to authenticate:
             # https://symfony.com/doc/current/security.html#the-firewall
@@ -24,8 +45,15 @@ security:
 
     # Note: Only the *first* matching rule is applied
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+         - { path: ^/files, roles: ROLE_ADMIN }
+         - { path: ^/guest-links, roles: ROLE_ADMIN }
+         - { path: ^/information, roles: ROLE_ADMIN }
+         - { path: ^/settings, roles: ROLE_ADMIN }
+         #
+         - { path: ^/login, roles: PUBLIC_ACCESS }
+         - { path: ^/dev, roles: PUBLIC_ACCESS }
+         - { path: ^/g/, roles: PUBLIC_ACCESS }
+         - { path: ^/, roles: PUBLIC_ACCESS }
 
 when@test:
     security:

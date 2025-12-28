@@ -1,0 +1,44 @@
+{% extends '_base.html.twig' %}
+
+{% block title %}Log in!{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h3>Login</h3>
+        <form method="post" action="{{- path('pico_admin_login') -}}">
+            {% if app.user %}
+                <div class="mb-3">
+                    You are logged in as {{ app.user.userIdentifier }}, <a href="{{ logout_path() }}">Logout</a>
+                </div>
+            {% endif %}
+            <fieldset>
+                {% if error %}
+                    <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                {% endif %}
+                <div class="field">
+                    <p class="control has-icons-left has-icons-right">
+                        <input class="input" name="_username" id="username"
+                               type="text" placeholder="Username"
+                               value="{{ last_username }}">
+                        <span class="icon is-small is-left"><i class="fas fa-envelope"></i></span>
+                        <span class="icon is-small is-right"><i class="fas fa-check"></i></span>
+                    </p>
+                </div>
+                <div class="field">
+                    <p class="control has-icons-left">
+                        <input class="input" type="password" name="_password" id="password" placeholder="Password">
+                        <span class="icon is-small is-left"><i class="fas fa-lock"></i></span>
+                    </p>
+                </div>
+                <input type="hidden" name="_csrf_token" data-controller="csrf-protection" value="{{ csrf_token('authenticate') }}">
+                <div class="field">
+                    <p class="control">
+                        <button type="submit" class="button is-success">
+                            Login
+                        </button>
+                    </p>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+{% endblock %}
