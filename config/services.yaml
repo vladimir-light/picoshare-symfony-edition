@@ -26,3 +26,19 @@ services:
     Symfony\Component\Uid\Command\GenerateUuidCommand: ~
     Symfony\Component\Uid\Command\InspectUlidCommand: ~
     Symfony\Component\Uid\Command\InspectUuidCommand: ~
+
+    gedmo.mapping.driver.attribute:
+        class: Gedmo\Mapping\Driver\AttributeReader
+    # Gedmo Timestampable Extension Listener
+    gedmo.listener.timestampable:
+        class: Gedmo\Timestampable\TimestampableListener
+        tags:
+            - { name: doctrine.event_listener, event: 'prePersist' }
+            - { name: doctrine.event_listener, event: 'onFlush' }
+            - { name: doctrine.event_listener, event: 'loadClassMetadata' }
+        calls:
+            - [ setAnnotationReader, [ '@gedmo.mapping.driver.attribute' ] ]
+            - [ setClock, [ '@clock' ] ]
+
+
+
