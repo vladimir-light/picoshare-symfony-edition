@@ -1,0 +1,33 @@
+<table class="table is-fullwidth">
+    <thead>
+    <tr>
+        <th>Download</th>
+        <th>Time</th>
+        <th>Downloader IP</th>
+        <th>Browser</th>
+        <th>Platform</th>
+    </tr>
+    </thead>
+    <tbody>
+        {% for downloadHisotry in history %}
+            {% set _uaMetaData = attribute(userAgentData, downloadHisotry.id)|default %}
+            <tr>
+                <td>
+                    {{ loop.index }}
+                </td>
+                <td>
+                    {{ downloadHisotry.downloadedAt|date('Y-m-d H:i') }}
+                </td>
+                <td>
+                    {{ downloadHisotry.clientIp }}
+                </td>
+                <td>
+                    {{  _uaMetaData.os|default('No Data') }}
+                </td>
+                <td>
+                    {{  _uaMetaData.ver|default('No Data') }}
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

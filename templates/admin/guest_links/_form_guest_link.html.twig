@@ -1,0 +1,64 @@
+{{ form_errors(form) }}
+{{ form_start(form) }}
+<fieldset>
+    {{ form_row(form.label) }}
+    {{ form_row(form.link_expires_after) }}
+    {{ form_row(form.file_expiration) }}
+
+    {% if form.max_file_size is defined %}
+        <div class="field">
+            {{ form_label(form.max_file_size) }}
+            <div class="control ">
+                <div class="field has-addons is-expanded">
+                    {{ form_widget(form.max_file_size, {attr: { class: 'control is-expanded'}}) }}
+                    <p class="control">
+                        <a class="button is-static">MB</a>
+                    </p>
+
+                </div>
+            </div>
+            {% if not form.max_file_size.vars.valid %}
+                {{ form_errors(form.max_file_size) }}
+            {% endif %}
+            {% if form.max_file_size.vars.valid %}
+                {{ form_help(form.max_file_size) }}
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {% if form.max_uploads is defined %}
+          <div class="field">
+            {{ form_label(form.max_uploads) }}
+            <div class="control ">
+                <div class="field has-addons is-expanded">
+                    {{ form_widget(form.max_uploads, {attr: { class: 'control is-expanded'}}) }}
+                    <p class="control">
+                        <a class="button is-static">file uploads</a>
+                    </p>
+
+                </div>
+            </div>
+            {% if not form.max_uploads.vars.valid %}
+                {{ form_errors(form.max_uploads) }}
+            {% endif %}
+            {% if form.max_uploads.vars.valid %}
+                {{ form_help(form.max_uploads) }}
+            {% endif %}
+        </div>
+    {% endif %}
+
+
+    {{ form_rest(form) }}
+
+    {% if not isNew|default %}
+        <a href="{{- path('pico_admin_guest_links_confirm_delete', { uniqId: entryUniqId }) -}}" class="button is-danger">Delete</a>
+    {% endif %}
+    <a href="{{- path('pico_admin_guest_links') -}}" class="button is-light">Back</a>
+    {% if isNew|default %}
+        <button tye="submit" class="button is-success" {% if app.debug %}formnovalidate{% endif %}>Create</button>
+    {% else %}
+        <button tye="submit" class="button is-info" {% if app.debug %}formnovalidate{% endif %}>Save</button>
+    {% endif %}
+
+</fieldset>
+{{ form_end(form) }}

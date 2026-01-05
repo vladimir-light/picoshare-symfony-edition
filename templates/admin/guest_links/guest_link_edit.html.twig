@@ -1,0 +1,20 @@
+{% extends 'crud_bulma.html.twig' %}
+
+{% block page_title -%}{{ pageTitle|default('New Guest Link') }}{%- endblock %}
+
+{% block crud_main %}
+    <div class="content container">
+        <h2 class="title mt-5">{{ pageTitle|default('_Page_Titlte_') }}</h2>
+
+        <section>
+            {% if form is defined %}
+                {% include 'admin/guest_links/_form_guest_link.html.twig' with {
+                    form: form,
+                    entryUniqId: entryUniqId,
+                    isNew: isNew
+                } only %}
+            {% endif %}
+        </section>
+    </div>
+{% endblock %}
+

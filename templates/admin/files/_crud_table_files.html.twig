@@ -1,0 +1,86 @@
+<div class="table-container">
+    <table class="table is-striped is-hoverable is-fullwidth">
+        <thead>
+        <tr>
+            <th>Filename</th>
+            <th>Note</th>
+            <th>Size</th>
+            <th>Uploaded</th>
+            <th>Expires</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% if paginatedResults %}
+            {% for file in paginatedResults %}
+                <tr>
+                    {# filename #}
+                    <td class="is-vcentered">
+                        <a href="{{ path('pico_download_entry_short', {uniqId: file.uniqLinkId.toBase58}) }}" target="_blank">
+                            {{- file.filename -}}
+                        </a>
+                        {% if app.debug %}
+                            <br><span class="is-size-7 has-text-grey-light is-family-monospace">{{ file.uniqLinkId.toBase58|default('_NO_UNIQ_LINK_ID_') }}</span>
+                        {% endif %}
+                    </td>
+                    {# note #}
+                    <td class="is-vcentered">
+                        <span class="is-family-primary"></span>
+                        {{- file.note -}}
+                    </td>
+                    {# size #}
+                    <td class="is-vcentered">
+                        {{- file.size|human_filesize -}}
+                    </td>
+                    {# uploaded #}
+                    <td class="is-vcentered">
+                        {{- file.createdAt|date('Y-m-d H:i') -}}
+                    </td>
+                    {# expires #}
+                    <td class="is-vcentered">
+                        {% if file.isEndless|default %}
+                            Never
+                        {% else %}
+                            <span>{{- file.expiresAt|date('Y-m-d H:i') -}}&nbsp;({{- file.expiresAt|time_diff -}})</span>
+                        {% endif %}
+                    </td>
+                    <td class="is-vcentered">
+                        <div class="buttons is-grouped is-justify-content-flex-end">
+                            <a class="button is-link" title="File Info" href="{{- path('pico_admin_files_info', { uniqId: file.uniqLinkId.toBase58 }) -}}">
+                                <i class="fa-solid fa-circle-info"></i>
+                            </a>
+                            <a class="button is-link" title="Edit" href="{{- path('pico_admin_files_edit', { uniqId: file.uniqLinkId.toBase58 }) -}}">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </a>
+                            <button class="button is-info" title="Copy Link">
+                                <i class="fa-solid fa-copy"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="6">
+                    <em>No Files &hellip;</em>
+                </td>
+            </tr>
+        {% endif %}
+        </tbody>
+    </table>
+</div>
+
+{% if paginatedResults|default and showPagination|default %}
+    <!-- Pagination -->
+    <nav class="pagination is-centered" role="navigation" aria-label="pagination">
+        <a class="pagination-previous" disabled>Previous</a>
+        <a class="pagination-next">Next page</a>
+        <ul class="pagination-list">
+            <li><a class="pagination-link is-current" aria-label="Page 1" aria-current="page">1</a></li>
+            <li><a class="pagination-link" aria-label="Goto page 2">2</a></li>
+            <li><a class="pagination-link" aria-label="Goto page 3">3</a></li>
+            <li><span class="pagination-ellipsis">&hellip;</span></li>
+            <li><a class="pagination-link" aria-label="Goto page 10">10</a></li>
+        </ul>
+    </nav>
+{% endif %}

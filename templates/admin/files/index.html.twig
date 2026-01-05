@@ -1,0 +1,37 @@
+{% extends 'crud_bulma.html.twig' %}
+
+{% block page_title %}{{ pageTitle|default('Files') }}{% endblock %}
+
+{% block crud_top_header %}
+    <!-- Page Header -->
+    <div class="level mb-5">
+        <div class="level-left">
+            <div class="level-item">
+                <div>
+                    <h1 class="title">{{- pageTitle|default('_crudTitle_') -}}</h1>
+                    <p class="subtitle">{{- pageDesc|default('_crudDesc_') -}}</p>
+                </div>
+            </div>
+        </div>
+        {% if allowAddNewEntry|default %}
+            {% include 'admin/_partials/_crud_add_new_entry.html.twig' with {
+                buttonTitle : 'New guest link',
+            } only %}
+        {% endif %}
+    </div>
+{% endblock crud_top_header %}
+
+{% block crud_main_contents %}
+    <div class="box">
+        {{- render(controller('App\\Controller\\Admin\\FilesController::filesList', {defaultPerPage: 15})) -}}
+        <div id="error" class="is-hidden my-3">
+            <article class="message is-danger">
+                <div class="message-header">
+                    Error
+                    <button class="delete" aria-label="delete"></button>
+                </div>
+                <div id="error-message" class="message-body">Placeholder error.</div>
+            </article>
+        </div>
+    </div>
+{% endblock crud_main_contents %}

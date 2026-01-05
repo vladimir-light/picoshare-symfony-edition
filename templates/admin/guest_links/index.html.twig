@@ -1,0 +1,118 @@
+{% extends 'crud_bulma.html.twig' %}
+
+{% block page_title %}Guest Links{% endblock %}
+
+
+{% block crud_top_header %}
+    <!-- Page Header -->
+    <div class="level mb-5">
+        <div class="level-left">
+            <div class="level-item">
+                <div>
+                    <h1 class="title">{{- pageTitle|default('_crudTitle_') -}}</h1>
+                    <p class="subtitle">{{- pageDesc|default('_crudDesc_') -}}</p>
+                </div>
+            </div>
+        </div>
+        {% if allowAddNewEntry|default %}
+            <div class="level-right">
+                <div class="level-item">
+                    <a class="button is-primary" href="{{ path('pico_admin_guest_link_new') }}">
+                        <span>New guest link</span>
+                    </a>
+                </div>
+            </div>
+{#            {% include 'admin/_partials/_crud_add_new_entry.html.twig' with {#}
+{#                buttonTitle : 'New guest link',#}
+{#                addModalForNewEntry: newEntryViaModal|default#}
+{#            } only %}#}
+        {% endif %}
+    </div>
+{% endblock crud_top_header %}
+
+{# {% block crud_top_filer %} #}
+{#    <!-- Search/Filter Bar (optional) --> #}
+{#    <div class="box"> #}
+{#        <div class="columns"> #}
+{#            <div class="column is-6"> #}
+{#                <div class="field"> #}
+{#                    <div class="control"> #}
+{#                        <input class="input" type="text" placeholder="Search items..."> #}
+{#                    </div> #}
+{#                </div> #}
+{#            </div> #}
+{#            <div class="column is-3"> #}
+{#                <div class="field"> #}
+{#                    <div class="control"> #}
+{#                        <div class="select is-fullwidth"> #}
+{#                            <select> #}
+{#                                <option>All Status</option> #}
+{#                                <option>Active</option> #}
+{#                                <option>Inactive</option> #}
+{#                            </select> #}
+{#                        </div> #}
+{#                    </div> #}
+{#                </div> #}
+{#            </div> #}
+{#            <div class="column is-3"> #}
+{#                <button class="button is-info is-fullwidth">Filter</button> #}
+{#            </div> #}
+{#        </div> #}
+{#    </div> #}
+{# {% endblock crud_top_filer %} #}
+
+{% block crud_main_contents %}
+    <div class="box">
+        {{- render(controller('App\\Controller\\Admin\\GuestLinksController::guestLinksList', {defaultPerPage: 15})) -}}
+    </div>
+{% endblock crud_main_contents %}
+
+
+{% block page_end_javascript %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Functions to open and close a modal
+            function openModal($el) {
+                $el.classList.add('is-active');
+            }
+
+            function closeModal($el) {
+                $el.classList.remove('is-active');
+            }
+
+            function closeAllModals() {
+                (document.querySelectorAll('.modal') || []).forEach(($modal) => {
+                    closeModal($modal);
+                });
+            }
+
+            // Add a click event on buttons to open a specific modal
+            (document.querySelectorAll('.js-modal-trigger') || []).forEach(($trigger) => {
+                const modal = $trigger.dataset.target;
+                const $target = document.getElementById(modal);
+                if(!$target) return;
+
+                $trigger.addEventListener('click', () => {
+                    openModal($target);
+                });
+            });
+
+            // Add a click event on various child elements to close the parent modal
+            (document.querySelectorAll('.modal-background, .modal-close, .modal-card-head .delete, .modal-card-foot .button') || []).forEach(($close) => {
+                const $target = $close.closest('.modal');
+
+                $close.addEventListener('click', () => {
+                    closeModal($target);
+                });
+            });
+
+            // Add a keyboard event to close all modals
+            document.addEventListener('keydown', (event) => {
+                if(event.key === "Escape") {
+                    closeAllModals();
+                }
+            });
+        });
+    </script>
+{% endblock %}

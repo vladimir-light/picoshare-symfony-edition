@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Download;
+use App\Entity\Entry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -40,4 +41,12 @@ class DownloadRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+    public function getDownloadsCount(Entry|int $entryOrId): int
+    {
+        $qb = $this->createQueryBuilder('d')
+                    ->select('COUNT(d)')
+                    ->andWhere('IDENTITY(d.entry) = :givenEntryId')->setParameter('givenEntryId', $entryOrId);
+
+        return (int)$qb->getQuery()->getSingleColumnResult();
+    }
 }

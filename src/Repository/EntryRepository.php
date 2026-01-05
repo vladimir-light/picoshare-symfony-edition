@@ -40,4 +40,27 @@ class EntryRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+    public function doDeleteEntryAndAllDataChunks(?Entry $file, ?bool $doFlush = false): void
+    {
+        $internalEntryId = $file->getId();
+        // first, delete all chunks
+        // then delete entry (file) itself
+
+
+        $this->getEntityManager()->beginTransaction();
+        //language=DQL
+        $deleted = $this->getEntityManager()->createQuery(
+            'DELETE FROM App\Entity\EntryChunk ec WHERE IDENTITY(ec.entry) = :entryId'
+        )->execute([
+            'entryId' => $internalEntryId
+        ]);
+
+        if( $deleted )
+        {
+            $this->getEntityManager()->remove($file);
+        }
+
+        $doFlush and $this->getEntityManager()->flush();
+        $this->getEntityManager()->commit();
+    }
 }

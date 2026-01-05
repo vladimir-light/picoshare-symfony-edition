@@ -1,0 +1,37 @@
+{% extends 'crud_bulma.html.twig' %}
+
+{% block page_title %}{{- pageTitle|default('Downloads') -}}{% endblock %}
+
+{% block crud_top_header %}
+    <!-- Page Header -->
+    <div class="level mb-5">
+        <div class="level-left">
+            <div class="level-item">
+                <div>
+                    <h1 class="title">{{- pageTitle|default('_crudTitle_') -}}</h1>
+                    <p class="subtitle">{{- foundFile.filename -}}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock crud_top_header %}
+
+{% block crud_main_contents %}
+    <div class="table-container">
+        {% if hasDownloads and downloadsHistory is defined %}
+            {% include 'admin/files/_table_downloads_history.twig' with {
+                history: downloadsHistory,
+                userAgentData: uaDataForEach
+            } %}
+        {% else %}
+            <p>
+                <em>No downloads yet&hellip;</em>
+            </p>
+        {% endif %}
+    </div>
+    <div class="field is-grouped">
+        <div class="control">
+            <a class="button is-link is-light" href="{{- path('pico_admin_files_info', { uniqId: foundFile.uniqLinkId.toBase58 }) -}}">Back</a>
+        </div>
+    </div>
+{% endblock %}

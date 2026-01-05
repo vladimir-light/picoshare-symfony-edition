@@ -1,0 +1,54 @@
+{% extends 'base_bulma.html.twig' %}
+
+{% block page_title %}
+    {{ pageTitle|default('_Page_Titlte_') }}
+{% endblock %}
+
+{% block body_main_sections %}
+    <!-- Main Content -->
+
+        <div class="container">
+            <section class="mt-5 mb-2">
+                <h1 class="title">{{- pageTitle|default('_crudTitle_') -}}</h1>
+            </section>
+        </div>
+
+
+
+    {%  if deleteForm is defined and deleteForm|default %}
+    <div class="container">
+        <section class="mt-5">
+            <p>Permanently delete <span class="filename">{{- foundFile.filename -}}</span>?</p>
+
+            {{ form_start(deleteForm) }}
+            <input type="hidden" name="_method" value="DELETE">
+            {% if not deleteForm.vars.valid %}
+                {{ form_errors(deleteForm) }}
+            {% endif %}
+
+            <fieldset>
+
+
+            <div class="field is-grouped is-grouped-right">
+                <p class="control">
+                    <a class="button is-light" href="{{ path('pico_admin_files_edit', {uniqId: foundFile.uniqLinkId.toBase58 }) }}">
+                        Cancel
+                    </a>
+                </p>
+                <p class="control">
+                    <button class="button is-danger" type="submit" name="{{  deleteForm.submit.vars.name }}">
+                        {{ deleteForm.submit.vars.label }}
+                    </button>
+                    {% do deleteForm.submit.setRendered %}
+                </p>
+            </div>
+
+                {{ form_rest(deleteForm) }}
+            </fieldset>
+
+            {{ form_end(deleteForm) }}
+        </section>
+    </div>
+    {% endif %}
+{% endblock %}
+
