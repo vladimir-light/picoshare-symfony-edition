@@ -27,15 +27,15 @@ That's how PicoShare Symfony Edition came about.
 To-Do
 ---
 
--[x] [general] Essential functionality (upload+download)
--[x] [admin] Essential admin-CRUD (files, guest-links)
--[x] [general] primitive tests 👶
--[ ] [admin] -> Settings and Info routes and controllers
--[ ] [upload] -> auto splitting files in chunks with fixed size 
--[ ] [general] -> API-Controllers 
--[ ] [upload] -> Fine-tune **memory-usage / memory-leaks** for bigger files.
--[ ] [css/js] -> Move custom CSS/JS to separate files. 
--[ ] [ui/ux] -> Darg&Drop + Dropzone + async uploads
+- [x] [general] Essential functionality (upload+download)
+- [x] [admin] Essential admin-CRUD (files, guest-links)
+- [x] [general] primitive tests 👶
+- [ ] [admin] -> Settings and Info routes and controllers
+- [ ] [upload] -> auto splitting files in chunks with fixed size 
+- [ ] [general] -> API-Controllers 
+- [ ] [upload] -> Fine-tune **memory-usage / memory-leaks** for bigger files.
+- [ ] [css/js] -> Move custom CSS/JS to separate files. 
+- [ ] [ui/ux] -> Darg&Drop + Dropzone + async uploads
 
 
 
