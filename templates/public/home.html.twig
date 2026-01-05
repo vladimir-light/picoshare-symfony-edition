@@ -1,0 +1,16 @@
+{% extends 'base_bulma.html.twig' %}
+
+{% block page_title %}{{ pageTitle|default('Welcome!') }}{% endblock %}
+
+
+{% block body_main_sections %}
+    <section class="section">
+        <div class="container">
+            {% if is_granted('ROLE_ADMIN') %}
+                {{- render_esi(controller('App\\Controller\\EntriesController::upload', { 'inline_form': true })) -}}
+            {% else %}
+                {{- render_esi(controller('App\\Controller\\PublicPagesController::singleBlockSectionAbout', {})) -}}
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}

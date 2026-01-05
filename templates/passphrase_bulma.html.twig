@@ -1,0 +1,121 @@
+{% extends 'base_bulma.html.twig' %}
+
+{% block on_page_style_tag %}
+    <style>
+        /* Light/Dark Mode CSS Variables */
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #4a4a4a;
+            --box-bg: #ffffff;
+            --box-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1), 0 0px 0 1px rgba(10, 10, 10, 0.02);
+            --footer-bg: #fafafa;
+            --border-color: #dbdbdb;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --box-bg: #2a2a2a;
+            --box-shadow: 0 0.5em 1em -0.125em rgba(0, 0, 0, 0.3), 0 0px 0 1px rgba(0, 0, 0, 0.1);
+            --footer-bg: #242424;
+            --border-color: #3a3a3a;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;  /* At least full viewport height */
+        }
+
+        .main-content {
+            flex: 1;  /* Grows to fill available space */
+        }
+
+        .box {
+            background-color: var(--box-bg);
+            box-shadow: var(--box-shadow);
+        }
+
+        .footer {
+            background-color: var(--footer-bg);
+        }
+
+        [data-theme="dark"] .content {
+            color: var(--text-color);
+        }
+
+        /* Theme toggle button styling */
+        .theme-toggle {
+            cursor: pointer;
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+{% endblock %}
+
+{% block body_main_sections %}
+    <!-- Main content wrapper for sticky footer layout -->
+    <main class="main-content">
+        <!-- Main Content -->
+        <section class="section">
+            <div class="container">
+                <div class="columns is-centered">
+                    <div class="column is-6-tablet is-5-desktop is-4-widescreen">
+                        <div class="box">
+                            <!-- Title -->
+                            <div class="has-text-centered mb-5">
+                                <h1 class="title is-4">Enter Passphrase</h1>
+                            </div>
+
+                            <!-- Password Form -->
+                            <form action="{{- path('pico_admin_login') -}}" method="POST">
+                                {% if error %}
+                                    <div class="notification is-danger is-light">
+                                        {{ error.messageKey|trans(error.messageData, 'security') }}
+                                    </div>
+                                {% endif %}
+                                <fieldset>
+                                    <!-- Password Field -->
+                                    <div class="field">
+{#                                        <label class="label" for="password">Passphrase</label>#}
+                                        <div class="control">
+                                            <input class="input" type="password" name="_password" id="password"
+                                                   placeholder="Passphrase" autocomplete="current-password"
+                                                   required>
+                                        </div>
+                                    </div>
+
+                                    <div class="hidden-field">
+                                        <input type="hidden" name="_csrf_token" data-controller="csrf-protection"
+                                               value="{{ csrf_token('authenticate') }}"/>
+                                        <input type="hidden" value="{{ last_username }}" name="_username" id="username"
+                                               required/>
+                                    </div>
+
+                                    <div class="field">
+                                        <div class="control">
+                                            <button class="button is-primary is-fullwidth" type="submit" {% if app.debug %}formnovalidate{% endif %}>
+                                                Submit
+                                            </button>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

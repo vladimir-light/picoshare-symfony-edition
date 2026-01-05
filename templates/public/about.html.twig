@@ -1,0 +1,32 @@
+{% extends 'base_bulma.html.twig' %}
+
+{% block page_title %}{{- pageTitle|default('About') -}}{% endblock %}
+
+{% block body_main_sections %}
+    <section class="section">
+        <div class="container">
+            {% block block_about %}
+                <h2 class="title">{{- pageTitle|default('About') -}}</h2>
+                <p class="content">
+                    This is a recreation (almost 1:1 clone) of <a href="https://github.com/mtlynch/picoshare" target="_blank">PicoShare</a> by
+                    <a href="https://mtlynch.io/" target="_blank">Michael Lynch</a>.<br/>
+                    This project built with <a href="https://symfony.com/" target="_blank">Symfony</a> + <a href="https://www.doctrine-project.org/" target="_blank">Doctrine</a> (Backend), <a href="https://sqlite.org/index.html" target="_blank">SQLite</a> (Database) and <a href="https://stimulus.hotwired.dev/" target="_blank">Stimulus</a> (Frontend).
+                </p>
+                <h2 class="title">What is PicoShare?</h2>
+                <p class="content">
+                    PicoShare is a minimalist service that allows you to share files easily.<br/><br/>
+                    On PicoShare, only you can upload files (not only images). You can share links to those files with anyone, and they never have to sign up for an account.<br/>
+                    PicoShare is easy to <b>self-host</b>.
+                </p>
+                <h2 class="title">Why?</h2>
+                <p class="content">
+                    ...TBD
+                </p>
+                <h2 class="title">How it works?</h2>
+                <p class="content">
+                    ...TBD
+                </p>
+            {% endblock %}
+        </div>
+    </section>
+{% endblock %}

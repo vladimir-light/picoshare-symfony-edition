@@ -1,0 +1,83 @@
+{%- set _light_dark_theme_switcher = true -%}
+{% if show_theme_toggle is defined and show_theme_toggle is same as(false) %}
+    {%- set _light_dark_theme_switcher = false -%}
+{% endif %}
+<!-- Navbar -->
+<nav class="navbar is-primary" role="navigation" aria-label="main navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="{{- path('pico_home') -}}">
+                <strong>{{- APP_NAME -}}</strong>
+            </a>
+
+            <!-- Burger menu for mobile -->
+            <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="mainNavbar">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </a>
+        </div>
+
+        <div id="mainNavbar" class="navbar-menu">
+            {% if is_granted('ROLE_ADMIN') %}
+                <div class="navbar-start">
+                    {% if show_about_link is defined and show_about_link|default %}
+                        <a class="navbar-item" href="/about">
+                            About
+                        </a>
+                    {% endif %}
+                    <a class="navbar-item" href="{{- path('pico_admin_files') -}}">
+                        Files
+                    </a>
+                    <a class="navbar-item" href="{{- path('pico_admin_guest_links') -}}">
+                        Guest Links
+                    </a>
+                    {% if app.debug %}
+                        <a class="navbar-item" href="{{- path('pico_dev') -}}">
+                            Dev
+                        </a>
+                    {% endif %}
+                </div>
+            {% elseif show_about_link is defined and show_about_link|default %}
+                <div class="navbar-start">
+                    <a class="navbar-item" href="/about">
+                        About
+                    </a>
+                </div>
+            {% endif %}
+
+            <div class="navbar-end">
+                {% if _light_dark_theme_switcher %}
+                    <div class="navbar-item">
+                        <button class="theme-toggle" id="themeToggle" title="Toggle light/dark mode">
+                            <span id="themeIcon">🌙</span>
+                        </button>
+                    </div>
+                {% endif %}
+                <div class="navbar-item">
+                    {% if is_granted('IS_AUTHENTICATED') is same as(false) %}
+                        <div class="buttons">
+                            <a class="button is-light" href="{{- path('pico_admin_login') -}}">
+                                Log in
+                            </a>
+                        </div>
+                    {% else %}
+                        <!-- user menu -->
+                        <div class="navbar-item has-dropdown is-hoverable">
+                            <a class="navbar-link" role="menuitem">System</a>
+                            <div class="navbar-dropdown is-right">
+                                <a class="navbar-item" role="menuitem" href="{{- path('pico_admin_info') -}}">Information</a>
+                                <a class="navbar-item" role="menuitem" href="{{- path('pico_admin_settings') -}}">Settings</a>
+                                <hr class="navbar-divider">
+                                <a id="navbar-log-out" class="navbar-item" role="menuitem"
+                                   href="{{- path('pico_admin_logout') -}}">Log Out</a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</nav>

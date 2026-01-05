@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}{{ APP_NAME }} &ndash; {% block page_title '' %}{% endblock title %}</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/fontawesome.min.css" integrity="sha256-G5bovI+uHM2gCO6EwO9PFQcclSBYzTaxY6DXks3YxBU=" crossorigin="anonymous">
+        {% block stylesheets %}
+        {% endblock %}
+
+        {% block javascripts %}
+            <script src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/js/all.min.js" integrity="sha256-Z6/mj/QZDUfTjL6nkq7pwkHNZpkVY8Xk8Appn4bTLXs=" crossorigin="anonymous"></script>
+        {% endblock %}
+
+        {% block on_page_style_tag %}
+            <style>
+            /* Light/Dark Mode CSS Variables */
+            :root {
+            --bg-color: #ffffff;
+            --text-color: #4a4a4a;
+            --box-bg: #ffffff;
+            --box-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1), 0 0px 0 1px rgba(10, 10, 10, 0.02);
+            --footer-bg: #fafafa;
+            --border-color: #dbdbdb;
+            }
+
+            [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --box-bg: #2a2a2a;
+            --box-shadow: 0 0.5em 1em -0.125em rgba(0, 0, 0, 0.3), 0 0px 0 1px rgba(0, 0, 0, 0.1);
+            --footer-bg: #242424;
+            --border-color: #3a3a3a;
+            }
+
+            body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            /* Sticky footer layout */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            }
+
+            /* Main content area grows to fill available space */
+            .main-content {
+            flex: 1;
+            }
+
+            .box {
+            background-color: var(--box-bg);
+            box-shadow: var(--box-shadow);
+            }
+
+            .footer {
+            background-color: var(--footer-bg);
+            }
+
+            [data-theme="dark"] .content {
+            color: var(--text-color);
+            }
+
+            /* Theme toggle button styling */
+            .theme-toggle {
+            cursor: pointer;
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            }
+
+            .theme-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            }
+
+            .flash-messages:empty {
+                display: none !important;
+            }
+            </style>
+        {% endblock on_page_style_tag %}
+    </head>
+    {% block body %}
+    <body>
+        {% block body_contents %}
+            {% block body_main_nav %}
+                {% include '_partials/main_nav.twig' with {} only %}
+            {% endblock body_main_nav %}
+            <main class="main-content">
+            {% block flash_messahes %}
+                <!-- Flash-Messages -->
+                {% include '_partials/flash_messages.twig' with {} only %}
+            {% endblock flash_messahes %}
+            {% block body_main_sections %}
+                <section class="section">
+                    <div class="container">
+                        Lorem Ipsum...
+                    </div>
+                </section>
+            {% endblock body_main_sections %}
+            </main>
+            {% block body_main_footer %}
+                {% include '_partials/main_footer.twig' with {} only %}
+            {% endblock body_main_footer %}
+        {% endblock body_contents %}
+        {% block page_end_javascript %}
+            <!-- JavaScript for navbar burger and theme toggle -->
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    // Navbar burger toggle
+                    const burgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+                    burgers.forEach(burger => {
+                        burger.addEventListener('click', () => {
+                            const target = burger.dataset.target;
+                            const menu = document.getElementById(target);
+                            burger.classList.toggle('is-active');
+                            menu.classList.toggle('is-active');
+                        });
+                    });
+
+                    // Theme toggle functionality
+                    const themeToggle = document.getElementById('themeToggle');
+                    const themeIcon = document.getElementById('themeIcon');
+                    const body = document.body;
+
+                    // Load saved theme or default to light
+                    const savedTheme = localStorage.getItem('theme') || 'light';
+                    body.setAttribute('data-theme', savedTheme);
+                    updateThemeIcon(savedTheme);
+
+                    // Toggle theme on button click
+                    themeToggle.addEventListener('click', () => {
+                        const currentTheme = body.getAttribute('data-theme');
+                        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+                        body.setAttribute('data-theme', newTheme);
+                        localStorage.setItem('theme', newTheme);
+                        updateThemeIcon(newTheme);
+                    });
+
+                    // Update icon based on theme
+                    function updateThemeIcon(theme) {
+                        themeIcon.textContent = theme === 'light' ? '🌙' : '☀️';
+                    }
+                });
+            </script>
+        {% endblock page_end_javascript %}
+    </body>
+    {% endblock body %}
+</html>

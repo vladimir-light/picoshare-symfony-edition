@@ -1,6 +1,9 @@
 twig:
-    file_name_pattern: '*.twig'
-
+    form_themes: ['_form/bulma_forms_layout.html.twig']
+    #file_name_pattern: '*.twig'
+    globals:
+        APP_NAME: '%env(APP_DEFAULT_NAME)%'
+        APP_DESC: '%env(APP_DEFAULT_DESC)%'
 when@test:
     twig:
         strict_variables: true
