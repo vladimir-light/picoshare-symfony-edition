@@ -1,0 +1,18 @@
+{% if pageTitle|default %}
+    <h2 class="title">{{- pageTitle -}}</h2>
+{% endif %}
+{%- if form is rootform -%}
+    {{ form_errors(form) }}
+{%- endif -%}
+    {{ form_start(form) }}
+<fieldset>
+    {{ form_rest(form) }}
+    {% if showSubmitBtn|default %}
+        <button type="submit" class="button is-info">Uplaod</button>
+    {% endif %}
+</fieldset>
+{{ form_end(form) }}
+{% if showProgressBar|default %}
+    {% include 'upload/_partials/_upload_progress_bar.html.twig' with { currentValue: 0  } only %}
+{% endif %}
+

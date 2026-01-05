@@ -7,8 +7,10 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Types\UlidType;
 use Symfony\Component\Uid\Ulid;
+use Doctrine\DBAL\Types\Types;
 
 #[ORM\Table(name: '`guest_links`')]
 #[ORM\Entity(repositoryClass: GuestLinkRepository::class)]
@@ -33,20 +35,32 @@ class GuestLink
     #[Gedmo\Timestampable(on: 'update')]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?\DateTime $expiresAt = null;
+    /*
+     * \DateTime after Link is considered as expired and is no longer usable
+     */
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $expiresAt = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\Positive(message: 'This value should be >= 1')]
     private ?int $maxFileBytes = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\Positive(message: 'This value should be >= 1')]
     private ?int $maxUploads = null;
 
+    #[ORM\Column(name: 'current_uploads', nullable: false, options: ['default' => 0])]
+    private int $currentUploads = 0;
+
+    /*
+     * Default-Setting for Uploads-Expiration in upload form..
+     * null -> never
+     */
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $fileExpiration = null;
 
     #[ORM\Column]
-    private ?bool $disabled = null;
+    private ?bool $disabled = false;
 
     /**
      * @var Collection<int, Entry>
@@ -54,8 +68,9 @@ class GuestLink
     #[ORM\OneToMany(targetEntity: Entry::class, mappedBy: 'guestLink')]
     private Collection $entries;
 
-    public function __construct()
+    public function __construct(?string $label = 'unnamed')
     {
+        $this->label = $label;
         $this->entries = new ArrayCollection();
     }
 
@@ -117,11 +132,16 @@ class GuestLink
         return $this->expiresAt;
     }
 
-    public function setExpiresAt(?\DateTime $expiresAt): static
+    public function setExpiresAt(?\DateTimeInterface $expiresAt): static
     {
         $this->expiresAt = $expiresAt;
 
         return $this;
+    }
+
+    public function isEndless(): bool
+    {
+        return $this->expiresAt === null;
     }
 
     public function getMaxFileBytes(): ?int
@@ -132,6 +152,18 @@ class GuestLink
     public function setMaxFileBytes(?int $maxFileBytes): static
     {
         $this->maxFileBytes = $maxFileBytes;
+
+        return $this;
+    }
+
+    public function getMaxFileSizeInMegaBytes(): int
+    {
+        return $this->getMaxFileBytes() / (1024 * 1024);
+    }
+
+    public function setMaxFileSizeInMegaBytes(int $mb): static
+    {
+        $this->setMaxFileBytes( $mb * 1024 * 1024 );
 
         return $this;
     }
@@ -147,6 +179,19 @@ class GuestLink
 
         return $this;
     }
+
+    public function getCurrentUploads(): int
+    {
+        return $this->currentUploads;
+    }
+
+    public function setCurrentUploads(int $currentUploads): static
+    {
+        $this->currentUploads = $currentUploads;
+
+        return $this;
+    }
+
 
     public function getFileExpiration(): ?string
     {
@@ -171,6 +216,17 @@ class GuestLink
 
         return $this;
     }
+
+    public function isUnlimitedUploads(): bool
+    {
+        return $this->maxUploads === null;
+    }
+
+    public function isUnlimitedFileSize(): bool
+    {
+        return $this->maxFileBytes === null;
+    }
+
 
     /**
      * @return Collection<int, Entry>
@@ -200,5 +256,20 @@ class GuestLink
         }
 
         return $this;
+    }
+
+    public function isLinkExpired(\DateTimeInterface $nowRef): bool
+    {
+        return $nowRef->getTimestamp() > $this->getExpiresAt()->getTimestamp();
+    }
+
+    public function isExpired(\DateTimeImmutable $nowRef): bool
+    {
+        // no expiration date -> not expired :)
+        if ($this->getExpiresAt() === null) {
+            return false;
+        }
+
+        return $nowRef->getTimestamp() > $this->getExpiresAt()->getTimestamp();
     }
 }

@@ -1,0 +1,17 @@
+{% extends 'base_bulma.html.twig' %}
+
+{% block page_title %}Uploaded!{% endblock %}
+
+
+{% block body_main_sections %}
+    <section class="section">
+        <div class="container">
+            {% include 'upload/upload_success_section.html.twig' with {
+                entryUniqId: entryUniqId,
+                entryFilename: entryFilename,
+                showEditBtn: is_granted('ROLE_ADMIN'),
+                showUploadAnotherBtn: showUploadAnotherBtn,
+            } only %}
+        </div>
+    </section>
+{% endblock %}

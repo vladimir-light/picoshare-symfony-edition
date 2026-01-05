@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use App\Repository\EntryMetaDataRepository;
+use App\Repository\EntryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -13,7 +13,7 @@ use Symfony\Component\Uid\Ulid;
 
 
 #[ORM\Table(name: '`entries`')]
-#[ORM\Entity(repositoryClass: EntryMetaDataRepository::class)]
+#[ORM\Entity(repositoryClass: EntryRepository::class)]
 class Entry
 {
     #[ORM\Id]
@@ -21,17 +21,20 @@ class Entry
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: UlidType::NAME, unique: true, name: 'uniq_link_id')]
+    #[ORM\Column(name: 'uniq_link_id', type: UlidType::NAME, unique: true)]
     private ?Ulid $uniqLinkId = null;
 
-    #[ORM\Column(length: 255, name: '`filename`', nullable: false)]
+    #[ORM\Column(name: '`filename`', type: Types::STRING, length: 255, nullable: false)]
     private ?string $filename = null;
+
+    #[ORM\Column(name: '`safe_filename`', type: Types::STRING, length: 255, nullable: true)]
+    private ?string $safeFilename = null;
 
     #[ORM\Column(length: 255, nullable: false)]
     private ?string $contentType = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?\DateTime $expiresAt = null;
+    #[ORM\Column(name: 'expires_at', type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $expiresAt = null;
 
     #[ORM\Column(nullable: false)]
     #[Gedmo\Timestampable(on: 'create')]
@@ -41,7 +44,7 @@ class Entry
     #[Gedmo\Timestampable(on: 'update')]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    #[ORM\Column(nullable: false, options: ['unsigned' => true])]
+    #[ORM\Column(name: 'size', type: Types::BIGINT, nullable: false, options: ['unsigned' => true])]
     private ?int $size = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -50,15 +53,17 @@ class Entry
     /**
      * @var Collection<int, EntryChunk>
      */
-    #[ORM\OneToMany(targetEntity: EntryChunk::class, mappedBy: 'entry')]
+    #[ORM\OneToMany(targetEntity: EntryChunk::class, mappedBy: 'entry', fetch: 'EXTRA_LAZY')]
+    #[ORM\OrderBy(['dataChunkIndex' => 'ASC'])]
     private Collection $entryChunks;
 
     #[ORM\ManyToOne(inversedBy: 'entries')]
     private ?GuestLink $guestLink = null;
 
-    public function __construct()
+    public function __construct(?Ulid $uniqLinkId = null)
     {
         $this->entryChunks = new ArrayCollection();
+        $this->setUniqLinkId($uniqLinkId);
     }
 
     public function getId(): ?int
@@ -78,6 +83,18 @@ class Entry
         return $this;
     }
 
+    public function getSafeFilename(): ?string
+    {
+        return $this->safeFilename;
+    }
+
+    public function setSafeFilename(?string $safeFilename): static
+    {
+        $this->safeFilename = $safeFilename;
+        return $this;
+    }
+
+
     public function getContentType(): ?string
     {
         return $this->contentType;
@@ -95,11 +112,16 @@ class Entry
         return $this->expiresAt;
     }
 
-    public function setExpiresAt(?\DateTime $expiresAt): static
+    public function setExpiresAt(?\DateTimeInterface $expiresAt): static
     {
         $this->expiresAt = $expiresAt;
 
         return $this;
+    }
+
+    public function isEndless(): bool
+    {
+        return $this->expiresAt === null;
     }
 
     public function getCreatedAt(): ?\DateTimeImmutable

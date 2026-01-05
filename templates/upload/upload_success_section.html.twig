@@ -1,0 +1,24 @@
+<h2 class="title">Uploaded!</h2>
+{% include '_partials/download_links.html.twig' with {
+    entryUniqId: entryUniqId,
+    entryFilename: entryFilename
+} only %}
+
+<div class="field is-grouped my-6">
+    {% if showEditBtn|default %}
+        <div class="control">
+            <a class="button is-link is-light" href="{{- path('pico_admin_files_edit', {uniqId: entryUniqId}) -}}">
+                Edit
+            </a>
+        </div>
+    {% endif %}
+    {% if showUploadAnotherBtn|default %}
+        <div class="control">
+            <form action="" method="get">
+            <button type="submit" class="button is-success">
+                Upload Another
+            </button>
+            </form>
+        </div>
+    {% endif %}
+</div>

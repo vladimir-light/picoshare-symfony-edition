@@ -34,6 +34,7 @@ class Download
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $clientIp = null;
 
+    // TODO: Find a way to save IPv6 if any
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $clientIpv6 = null;
 

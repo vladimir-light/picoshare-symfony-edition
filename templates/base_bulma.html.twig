@@ -87,12 +87,12 @@
     <body>
         {% block body_contents %}
             {% block body_main_nav %}
-                {% include '_partials/main_nav.twig' with {} only %}
+                {% include '_partials/main_nav.html.twig' with {} only %}
             {% endblock body_main_nav %}
             <main class="main-content">
             {% block flash_messahes %}
                 <!-- Flash-Messages -->
-                {% include '_partials/flash_messages.twig' with {} only %}
+                {% include '_partials/flash_messages.html.twig' with {} only %}
             {% endblock flash_messahes %}
             {% block body_main_sections %}
                 <section class="section">
@@ -103,7 +103,7 @@
             {% endblock body_main_sections %}
             </main>
             {% block body_main_footer %}
-                {% include '_partials/main_footer.twig' with {} only %}
+                {% include '_partials/main_footer.html.twig' with {} only %}
             {% endblock body_main_footer %}
         {% endblock body_contents %}
         {% block page_end_javascript %}
