@@ -39,13 +39,22 @@ class GuestLinkType extends AbstractType
                 'label' => 'Max file size (optional)',
                 'required' => false,
                 'attr' => [
-                    'placeholder' => '20MB',
+                    'placeholder' => '20',
                     'min' => 1,
                     'step' => 1,
                 ],
                 'property_path' => 'maxFileSizeInMegaBytes', // special getter/setter in GuestLink entity
                 'html5' => true,
-                'help' => 'Lorem Ipsum',
+                'help' => 'Unlimited, if left blank',
+                'constraints' => [
+                    // INFO: since we use a different property_path (without underlying prop in the entity-class)
+                    //       we MUST configure constrains here.
+                    //       Otherwise, the error-message will appear on top of the form (rootform ) rather than on this particular form-field.
+                    //
+                    //       Yeah, there's such thing like 'error_mapping' on each formType,
+                    //       but I couldn't make it work. I don’t know why; maybe I'm missing something.
+                    new Assert\Range( notInRangeMessage: 'This value should be between {{ min }} and {{ max }} or empty.', min: 1 /*, max: 512*/), // TODO: remove after fixing memory-issues on huge files.
+                ]
             ])
             ->add('max_uploads', FormTypes\NumberType::class, [
                 'label' => 'Upload limit (optional)',
@@ -57,6 +66,7 @@ class GuestLinkType extends AbstractType
                 ],
                 'property_path' => 'maxUploads',
                 'html5' => true,
+                'help' => 'Unlimited, if left blank',
             ]);
 
         $builder->addEventListener(FormEvents::POST_SUBMIT, [$this, 'postSubmitEventHandler']);
@@ -82,17 +92,8 @@ class GuestLinkType extends AbstractType
             $newExpirationDateTime = $refNow->modify($expirationModifier);
             $entity->setExpiresAt($newExpirationDateTime);
         }
-//        // 2 - maxFileSize -> convert input (in MB) to int as bytes, since this value is stored in DB
-//        $maxFileSize = $form->get('max_file_size')->getData();
-//        // null -> unlimited
-//        if(!empty($maxFileSize) )
-//        {
-//            $entity->setMaxFileBytes( $maxFileSize * 1024 * 1024 );
-//        }
 
-
-        // FIXME: Debug-purpose only
-        //$form->addError(new FormError(__METHOD__ . ' momentski...'));
+        // $form->addError(new FormError(__METHOD__ . ' hold on...')); // FIXME: Debugging-purpose only
     }
 
     public function configureOptions(OptionsResolver $resolver): void

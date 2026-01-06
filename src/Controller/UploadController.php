@@ -91,9 +91,14 @@ final class UploadController extends AbstractController
         }
         else
         {
+            $maxUploadFilesize = null;
+            if ($guestLink !== null && $guestLink->isUnlimitedFileSize() === false) {
+                $maxUploadFilesize = $guestLink->getMaxFileSizeInMegaBytes(); // as integer
+            }
             $uploadForm = $this->createForm(UploadFormType::class, null, [
                 'is_admin_form' => $isAdmin,
                 'preselected_auto_expire_value' => $guestLink?->getFileExpiration(),
+                'custom_max_upload_filesize_in_mb' => $maxUploadFilesize,
                 'action' => $guestLink === null ? $this->generateUrl('pico_upload_file') : $this->generateUrl('pico_upload_file_with_guest_link', ['guestLinkUniqId' => $guestLinkUniqId]),
                 'method' => Request::METHOD_POST,
             ]);

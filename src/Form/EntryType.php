@@ -60,8 +60,7 @@ final class EntryType extends AbstractType
             return;
         }
 
-        // FIXME: Debug-purpose only
-        // $form->addError(new FormError(__METHOD__ . ' momentski...'));
+        // $form->addError(new FormError(__METHOD__ . ' hold on...')); // FIXME: Debugging-purpose only
     }
 
     public function configureOptions(OptionsResolver $resolver): void

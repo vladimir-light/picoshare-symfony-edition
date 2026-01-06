@@ -41,12 +41,17 @@ class GuestLink
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $expiresAt = null;
 
+    /*
+     * Info: No validation-assertions here!
+     *       All constrains are in the GuestLinkType::class
+     *
+     */
     #[ORM\Column(nullable: true)]
-    #[Assert\Positive(message: 'This value should be >= 1')]
+    //#[Assert\Positive(message: 'This value should be >= 1 or empty')] // <-- leave it as comment just for future reference.
     private ?int $maxFileBytes = null;
 
     #[ORM\Column(nullable: true)]
-    #[Assert\Positive(message: 'This value should be >= 1')]
+    #[Assert\Positive(message: 'This value should be >= 0 or empty')]
     private ?int $maxUploads = null;
 
     #[ORM\Column(name: 'current_uploads', nullable: false, options: ['default' => 0])]
@@ -156,14 +161,24 @@ class GuestLink
         return $this;
     }
 
-    public function getMaxFileSizeInMegaBytes(): int
+    public function getMaxFileSizeInMegaBytes(): ?int
     {
-        return $this->getMaxFileBytes() / (1024 * 1024);
+        if ($this->maxFileBytes === null) {
+            return null;
+        }
+
+        return $this->maxFileBytes / (1024 * 1024);
     }
 
-    public function setMaxFileSizeInMegaBytes(int $mb): static
+    public function setMaxFileSizeInMegaBytes(?int $mb): static
     {
-        $this->setMaxFileBytes( $mb * 1024 * 1024 );
+        if ($mb === null) {
+            $this->maxFileBytes = null;
+
+            return $this;
+        }
+
+        $this->setMaxFileBytes($mb * 1024 * 1024);
 
         return $this;
     }
