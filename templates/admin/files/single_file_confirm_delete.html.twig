@@ -21,14 +21,11 @@
             <p>Permanently delete <span class="filename">{{- foundFile.filename -}}</span>?</p>
 
             {{ form_start(deleteForm) }}
-            <input type="hidden" name="_method" value="DELETE">
             {% if not deleteForm.vars.valid %}
                 {{ form_errors(deleteForm) }}
             {% endif %}
 
             <fieldset>
-
-
             <div class="field is-grouped is-grouped-right">
                 <p class="control">
                     <a class="button is-light" href="{{ path('pico_admin_files_edit', {uniqId: foundFile.uniqLinkId.toBase58 }) }}">

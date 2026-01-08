@@ -160,9 +160,28 @@ final class FilesController extends AbstractController
         {
             if( $deleteForm->isValid() )
             {
-                $this->entriesRepo->doDeleteEntryAndAllDataChunks($file, true);
-                $this->addFlash('success', 'File deleted');
-                return $this->redirectToRoute('pico_admin_files');
+                $this->em->beginTransaction();
+                $allGood = false;
+                try {
+                    $this->entriesRepo->doDeleteEntryAndAllRelatedData($file, false);
+                    $this->em->flush();
+                    $this->em->commit();
+                    $allGood = true;
+                }
+                catch (\Throwable $err)
+                {
+                    $this->em->rollback();
+                    $this->addFlash('error', 'Deletion failed. Error: '. $err->getMessage());
+                }
+
+                if( $allGood )
+                {
+                    $this->addFlash('success', 'File deleted');
+                    return $this->redirectToRoute('pico_admin_files');
+                }
+
+                // if you hit this, something went wrong
+                return $this->redirectToRoute('pico_admin_files_delete_confirm', ['uniqId' => $uniqId->toBase58()]);
             }
 
             $resp->setStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY);
