@@ -51,7 +51,7 @@
     {{ form_rest(form) }}
 
     {% if not isNew|default %}
-        <a href="{{- path('pico_admin_guest_links_confirm_delete', { uniqId: entryUniqId }) -}}" class="button is-danger">Delete</a>
+        <a href="{{- path('pico_admin_guest_link_confirm_delete', { uniqId: entryUniqId, '_ref' : 'edit' }) -}}" class="button is-danger">Delete</a>
     {% endif %}
     <a href="{{- path('pico_admin_guest_links') -}}" class="button is-light">Back</a>
     {% if isNew|default %}

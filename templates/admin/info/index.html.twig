@@ -1,19 +1,31 @@
-{% extends 'base_bulma.html.twig' %}
+{% extends 'crud_bulma.html.twig' %}
 
-{% block title %}Hello InfoController!{% endblock %}
+{% block page_title %}{{ pageTitle|default('Info') }}{% endblock %}
 
-{% block body_main_sections %}
-    <section class="section">
-        <div class="container">
-            <h1>Hello {{ controller_name }}! ✅</h1>
 
-            This friendly message is coming from:
+{% block crud_main_contents %}
+    <div class="content">
+
+        <h1 class="title">{{ pageTitle|default('Info') }}</h1>
+
+        {% if currentUsage is defined %}
+            <h2>Disk Usage</h2>
             <ul>
-                <li>Your controller at <code>C:/Users/vLight/Programming/PHP/picoshare-symfony/src/Controller/InfoController.php</code>
+                <li>
+                    <strong>Upload data</strong>:&nbsp;{{- currentUsage.totalFiles|human_filesize -}}
                 </li>
-                <li>Your template at <code>C:/Users/vLight/Programming/PHP/picoshare-symfony/templates/info/index.html.twig</code>
+                <li>
+                    <strong>Database files</strong>:&nbsp;{{- currentUsage.totalDbFilesize|human_filesize -}}
                 </li>
             </ul>
-        </div>
-    </section>
+        {% endif %}
+        {#        <h2>PicoShare Version</h2> #}
+        {#        <ul> #}
+        {#            <li><strong>Version</strong>: 1.5.1</li> #}
+        {#            <li> #}
+        {#                <strong>Built at</strong>: #}
+        {#                2025-08-24 14:24:58 +0000 #}
+        {#            </li> #}
+        {#        </ul> #}
+    </div>
 {% endblock %}

@@ -1,5 +1,5 @@
 <div class="table-container">
-    <table class="table is-striped is-hoverable is-fullwidth">
+    <table class="table is-hoverable is-fullwidth">
         <thead>
         <tr>
             <th>Label</th>
@@ -15,7 +15,12 @@
         <tbody>
         {% if paginatedResults %}
             {% for guestLink in paginatedResults %}
-                <tr>
+                {% set _guestLinkUsable = true %}
+                {% if guestLink.maxAllowedUploadsReached or guestLink.isExpired or guestLink.disabled %}
+                    {% set _guestLinkUsable = false %}
+                {% endif %}
+                {%- set _isDisabled = guestLink.disabled -%}
+                <tr class="{% if not _guestLinkUsable %}is-light{% endif %}">
                     {# Label #}
                     <td class="is-vcentered">
                         <a href="{{ path('pico_upload_file_with_guest_link', {guestLinkUniqId: guestLink.uniqLinkId.toBase58}) }}" target="_blank">
@@ -24,7 +29,6 @@
                             {% else %}
                                 <em>unnamed</em>
                             {% endif %}
-
                         </a>
                         {% if app.debug %}
                             <br><span class="is-size-6 has-text-grey-light is-family-monospace">{{ guestLink.uniqLinkId.toBase58|default('_NO_UNIQ_LINK_ID_') }}</span>
@@ -69,18 +73,27 @@
                     {# Actions #}
                     <td class="is-vcentered">
                         <div class="buttons">
+                            {% if _guestLinkUsable %}
                             <button class="button is-dark" title="Copy Link">
                                 <i class="fa-solid fa-copy"></i>
                             </button>
+                            {% endif %}
                             {% if app.debug %}
                             <a class="button is-info" title="Edit" href="{{- path('pico_admin_guest_link_edit', { uniqId: guestLink.uniqLinkId.toBase58 }) -}}">
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </a>
                             {% endif %}
-                            <a class="button is-warning" title="Disable" href="{{- path('pico_admin_guest_link_edit', { uniqId: guestLink.uniqLinkId.toBase58 }) -}}">
-                                <i class="fa-solid fa-ban"></i>
-                            </a>
-                            <a class="button is-danger" title="Delete" href="{{- path('pico_admin_guest_links_confirm_delete', { uniqId: guestLink.uniqLinkId.toBase58 }) -}}">
+                            {% if _isDisabled %}
+                                <a class="button is-success" title="Enable" href="{{- path('pico_admin_guest_link_enable', { uniqId: guestLink.uniqLinkId.toBase58 }) -}}">
+                                    <i class="fa-solid fa-square-check"></i>
+                                </a>
+                            {% else %}
+                                <a class="button is-warning" title="Disable" href="{{- path('pico_admin_guest_link_disable', { uniqId: guestLink.uniqLinkId.toBase58 }) -}}">
+                                    <i class="fa-solid fa-ban"></i>
+                                </a>
+                            {% endif %}
+
+                            <a class="button is-danger" title="Delete" href="{{- path('pico_admin_guest_link_confirm_delete', { uniqId: guestLink.uniqLinkId.toBase58 }) -}}">
                                 <i class="fa-solid fa-trash-can"></i>
                             </a>
                         </div>

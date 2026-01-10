@@ -278,12 +278,14 @@ class GuestLink
         return $nowRef->getTimestamp() > $this->getExpiresAt()->getTimestamp();
     }
 
-    public function isExpired(\DateTimeImmutable $nowRef): bool
+    public function isExpired(?\DateTimeImmutable $nowRef = null): bool
     {
         // no expiration date -> not expired :)
         if ($this->getExpiresAt() === null) {
             return false;
         }
+
+        $nowRef === null and $nowRef = new \DateTimeImmutable('now');
 
         return $nowRef->getTimestamp() > $this->getExpiresAt()->getTimestamp();
     }

@@ -3,18 +3,58 @@
 {% block page_title -%}{{ pageTitle|default('New Guest Link') }}{%- endblock %}
 
 {% block crud_main %}
-    <div class="content container">
-        <h2 class="title mt-5">{{ pageTitle|default('_Page_Titlte_') }}</h2>
 
-        <section>
-            {% if form is defined %}
-                {% include 'admin/guest_links/_form_guest_link.html.twig' with {
-                    form: form,
-                    entryUniqId: entryUniqId,
-                    isNew: isNew
-                } only %}
-            {% endif %}
+    <!-- Main Content -->
+
+    <div class="container">
+        <section class="mt-5 mb-2">
+            <h1 class="title">{{- pageTitle|default('_crudTitle_') -}}</h1>
+        </section>
+        <section class="my-3">
+            <h3 class="is-size-4">Permanently delete Guest-Link: <span class="guest-link-label has-text-weight-medium">"{{- guestLink.label|default('unnamed') -}}"</span>?</h3>
+        </section>
+        <section class="mt-5 mb-2">
+            <p>
+                Created: <b>{{ guestLink.createdAt|date('Y-m-d H:i') }}</b><br/>
+                Total Uploads: <b>{{ guestLink.currentUploads|default(0) }}</b>
+            </p>
         </section>
     </div>
+
+
+    {% if deleteForm is defined and deleteForm|default %}
+        <div class="container">
+            <section class="mt-5">
+
+                {{ form_start(deleteForm) }}
+                {% if not deleteForm.vars.valid %}
+                    {{ form_errors(deleteForm) }}
+                {% endif %}
+
+                <fieldset>
+                    {% if deleteForm.deleteAllFiles is defined %}
+                        {{ form_row(deleteForm.deleteAllFiles) }}
+                    {% endif %}
+                    <div class="field is-grouped is-grouped-right">
+                        <p class="control">
+                            <a class="button is-light" href="{{ path('pico_admin_guest_links') }}">
+                                Cancel
+                            </a>
+                        </p>
+                        <p class="control">
+                            <button class="button is-danger" type="submit" name="{{ deleteForm.submit.vars.name }}">
+                                {{ deleteForm.submit.vars.label }}
+                            </button>
+                            {% do deleteForm.submit.setRendered %}
+                        </p>
+                    </div>
+
+                    {{ form_rest(deleteForm) }}
+                </fieldset>
+
+                {{ form_end(deleteForm) }}
+            </section>
+        </div>
+    {% endif %}
 {% endblock %}
 

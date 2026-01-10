@@ -23,7 +23,7 @@
             {% if is_granted('ROLE_ADMIN') %}
                 <div class="navbar-start">
                     {% if show_about_link is defined and show_about_link|default %}
-                        <a class="navbar-item" href="/about">
+                        <a class="navbar-item" href="{{- path('pico_about') -}}">
                             About
                         </a>
                     {% endif %}
@@ -33,10 +33,15 @@
                     <a class="navbar-item" href="{{- path('pico_admin_guest_links') -}}">
                         Guest Links
                     </a>
+                    {% if app.debug %}
+                    <a class="navbar-item" href="{{- path('pico_dev') -}}">
+                        Dev
+                    </a>
+                    {% endif %}
                 </div>
             {% elseif show_about_link is defined and show_about_link|default %}
                 <div class="navbar-start">
-                    <a class="navbar-item" href="/about">
+                    <a class="navbar-item" href="{{- path('pico_about') -}}">
                         About
                     </a>
                 </div>
@@ -63,7 +68,6 @@
                             <a class="navbar-link" role="menuitem">System</a>
                             <div class="navbar-dropdown is-right">
                                 <a class="navbar-item" role="menuitem" href="{{- path('pico_admin_info') -}}">Information</a>
-                                <a class="navbar-item" role="menuitem" href="{{- path('pico_admin_settings') -}}">Settings</a>
                                 <hr class="navbar-divider">
                                 <a id="navbar-log-out" class="navbar-item" role="menuitem"
                                    href="{{- path('pico_admin_logout') -}}">Log Out</a>

@@ -6,9 +6,13 @@ use App\Entity\GuestLink;
 use App\Form\GuestLinkType;
 use App\Repository\GuestLinkRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,6 +26,7 @@ final class GuestLinksController extends AbstractController
     (
         private EntityManagerInterface $em,
         private GuestLinkRepository    $guestLinksRepo,
+        private LoggerInterface        $logger,
     )
     {
     }
@@ -49,39 +54,9 @@ final class GuestLinksController extends AbstractController
         ], $resp);
     }
 
-//    #[Route('/guest-links/new', name: 'pico_admin_guest_links_new', methods: [Request::METHOD_POST, Request::METHOD_GET])]
-//    public function createNew(Request $request, Ulid $uniqId)
-//    {
-//        $guestLink = new GuestLink();
-//        $form = $this->createForm(GuestLinkType::class, $guestLink, [
-//            'method' => Request::METHOD_POST,
-//            'action' => $this->generateUrl('pico_admin_guest_links_new')
-//        ]);
-//
-//        $resp = new Response();
-//
-//        if ($form->isSubmitted()) {
-//            if ($form->isValid()) {
-//                dd($guestLink);
-//                $this->addFlash('success', 'New Guest-Link has been created');
-//                return $this->redirectToRoute('pico_admin_guest_links');
-//            }
-//
-//            $resp->setStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY);
-//        }
-//
-//        $twigCtx = [
-//            'form' => $form?->createView(),
-//            'guestLink' => $guestLink,
-//            'isNew' => $guestLink->getId() === null,
-//        ];
-//
-//        return $this->render('admin/guest_links/guest_link_edit.html.twig', $twigCtx, $resp);
-//    }
-
     #[Route('/guest-links/new', name: 'pico_admin_guest_link_new', methods: [Request::METHOD_POST, Request::METHOD_GET])]
     #[Route('/guest-links/{uniqId}/edit', name: 'pico_admin_guest_link_edit', methods: [Request::METHOD_POST, Request::METHOD_GET])]
-    public function ediOrCreateGuestLink(Request $request, ?Ulid $uniqId = null): Response
+    public function editOrCreateGuestLink(Request $request, ?Ulid $uniqId = null): Response
     {
         $isNew = false;
         if ($uniqId === null && $request->attributes->get('_route') === 'pico_admin_guest_link_new') {
@@ -122,6 +97,12 @@ final class GuestLinksController extends AbstractController
                         $this->em->rollback();
                         $rollback = true;
                     }
+                    $this->logger->error('Guest-Link `{guest_link_id}`: {actionType} action failed!', [
+                        'exception' => $err,
+                        'guest_link_id' => $uniqId?->toBase58(),
+                        'actionType' => $isNew ? 'CREATE NEW' : 'EDIT',
+                        'db_rollback' => $rollback ? 'yes' : 'no',
+                    ]);
                     $this->addFlash('error', 'Something went wrong :/ Error: ' . $err->getMessage());
                 }
 
@@ -152,14 +133,96 @@ final class GuestLinksController extends AbstractController
         return $this->render('admin/guest_links/guest_link_edit.html.twig', $twigCtx, $resp);
     }
 
-    #[Route('/guest-links/{uniqId}/confirm-delete', name: 'pico_admin_guest_links_confirm_delete')]
-    public function confirmDeleteGuestLink(Request $request, Ulid $uniqId)
+    #[Route('/guest-links/{uniqId}/confirm-delete', name: 'pico_admin_guest_link_confirm_delete', methods: [Request::METHOD_GET, Request::METHOD_DELETE])]
+    public function confirmDeleteGuestLink(Request $request, Ulid $uniqId): RedirectResponse|Response
     {
-        // TODO:
-        throw new \BadMethodCallException('TBD...');
-
         $foundGuestLink = $this->getGuestLinkOrPanicWith404($uniqId);
-        $deleteForm = $this->createDeleteForm($uniqId);
+        $deleteForm = $this->createDeleteForm($foundGuestLink->getUniqLinkId());
+        $isFromEditAction = $request->query->get('_ref') === 'edit';
+
+        if ($request->isMethod(Request::METHOD_DELETE)) {
+            $deleteForm->handleRequest($request);
+            if ($deleteForm->isSubmitted() && $deleteForm->isValid()) {
+                $deleteAllFiles = $deleteForm?->get('deleteAllFiles')->getData();
+
+                $this->em->beginTransaction();
+                $allGood = false;
+                try {
+                    $this->em->remove($foundGuestLink);
+                    if ($deleteAllFiles) {
+                        $this->deleteAllFilesOfGuestLink($foundGuestLink);
+                    }
+                    $this->em->flush();
+                    $this->em->commit();
+                    $allGood = true;
+                } catch (\Throwable $err) {
+                    $rollback = false;
+                    if ($this->em->getConnection()->isTransactionActive()) {
+                        $this->em->rollback();
+                        $rollback = true;
+                    }
+                    $this->logger->error('Guest-Link `{guest_link_id}`: DELETE action failed!', [
+                        'exception' => $err,
+                        'guest_link_id' => $uniqId?->toBase58(),
+                        'db_rollback' => $rollback ? 'yes' : 'no',
+                    ]);
+                }
+
+                if ($allGood) {
+                    $msg = 'Guest-link was successfully deleted!';
+                    if ($deleteAllFiles) {
+                        $msg = 'Guest-link (and all associated files) were successfully deleted!';
+                    }
+                    $this->addFlash('success', $msg);
+                    return $this->redirectToRoute('pico_admin_guest_links');
+                }
+
+                $this->addFlash('error', 'Something went wrong :/');
+                return $this->redirectToRoute('pico_admin_guest_link_confirm_delete', ['uniqId' => $uniqId->toBase58()]);
+            }
+        }
+
+        $twigCtx = [
+            'deleteForm' => $deleteForm?->createView(),
+            'guestLink' => $foundGuestLink,
+            'pageTitle' => 'Delete Guest-Link',
+            'isFromEdit' => $isFromEditAction,
+        ];
+
+        return $this->render('admin/guest_links/guest_link_confirm_delete.html.twig', $twigCtx);
+    }
+
+    #[Route(path: '/guest-links/{uniqId}/enable', name: 'pico_admin_guest_link_enable', methods: [Request::METHOD_PUT, Request::METHOD_GET])]
+    public function enableGuestLink(Ulid $uniqId): RedirectResponse
+    {
+        $foundGuestLink = $this->getGuestLinkOrPanicWith404($uniqId);
+        if($foundGuestLink->isDisabled() === false)
+        {
+            $this->addFlash('warning', sprintf('Guest-Link (%s) is already enabled!', $uniqId->toBase58()));
+            return $this->redirectToRoute('pico_admin_guest_links');
+        }
+        return $this->toggleGuestLinkState($foundGuestLink, 'enable');
+    }
+
+    #[Route(path: '/guest-links/{uniqId}/disable', name: 'pico_admin_guest_link_disable', methods: [Request::METHOD_PUT, Request::METHOD_GET])]
+    public function disabledGuestLink(Ulid $uniqId): RedirectResponse
+    {
+        $foundGuestLink = $this->getGuestLinkOrPanicWith404($uniqId);
+        if($foundGuestLink->isDisabled())
+        {
+            $this->addFlash('warning', sprintf('Guest-Link (%s) is already disabled!', $uniqId->toBase58()));
+            return $this->redirectToRoute('pico_admin_guest_links');
+        }
+        return $this->toggleGuestLinkState($foundGuestLink, 'disable');
+    }
+
+    private function toggleGuestLinkState(GuestLink $guestLink, string $action): RedirectResponse
+    {
+        $guestLink->setDisabled( $action === 'disable' );
+        $this->em->flush();
+
+        $this->addFlash('success', sprintf('Guest-Link (%s) successfully %s', $guestLink->getUniqLinkId()->toBase58(), $action === 'disable' ? 'disabled' : 'enabled' ));
+        return $this->redirectToRoute('pico_admin_guest_links');
     }
 
     private function getGuestLinkOrPanicWith404(Ulid $uniqId, string $notFoundMessage = 'GuestLink not found!'): ?GuestLink
@@ -171,11 +234,11 @@ final class GuestLinksController extends AbstractController
         return $guestLink;
     }
 
-    private function createDeleteForm(Ulid $uniqId): \Symfony\Component\Form\FormInterface
+    private function createDeleteForm(Ulid $uniqId): FormInterface
     {
         $form = $this->createFormBuilder(null, [
             'method' => Request::METHOD_DELETE,
-            'action' => $this->generateUrl('pico_admin_guest_links_confirm_delete', [
+            'action' => $this->generateUrl('pico_admin_guest_link_confirm_delete', [
                 'uniqId' => $uniqId->toBase58(),
                 'confirmed' => '✓'
             ]),
@@ -186,10 +249,27 @@ final class GuestLinksController extends AbstractController
             'data' => $uniqId->toBase58(),
         ]);
 
+        $form->add('deleteAllFiles', CheckboxType::class, [
+            'label' => 'Also delete all files?',
+            'mapped' => false,
+            'data' => false,
+            'required' => false,
+        ]);
+
         $form->add('submit', SubmitType::class, [
             'label' => 'Delete',
         ]);
 
         return $form->getForm();
+    }
+
+    private function deleteAllFilesOfGuestLink(GuestLink $guestLink): void
+    {
+        // TODO: Improve! EntryChunks and Downloads should be also deleted.
+        //        Find all distinct entries_id of this guest, then perform $entriesRepo->doDeleteEntryAndAllRelatedData($id)
+        //language=DQL
+        $this->em->createQuery('DELETE FROM App\Entity\Entry file WHERE IDENTITY(file.guestLink) = :givenGuestLink')->execute([
+            'givenGuestLink' => $guestLink,
+        ]);
     }
 }
