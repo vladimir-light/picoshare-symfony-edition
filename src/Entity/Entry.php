@@ -58,6 +58,7 @@ class Entry
     private Collection $entryChunks;
 
     #[ORM\ManyToOne(inversedBy: 'entries')]
+    #[ORM\JoinColumn(name: 'guest_link_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
     private ?GuestLink $guestLink = null;
 
     public function __construct(?Ulid $uniqLinkId = null)

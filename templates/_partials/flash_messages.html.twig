@@ -1,26 +1,26 @@
 <div class="container py-5 flash-messages">
     {%- for message in app.flashes('info') -%}
         <div class="notification is-info is-light">
-            {{- message -}}
+            <div class="message-body">{{- message -}}</div>
         </div>
     {%- endfor -%}
 
     {%- for message in app.flashes('success') -%}
         <div class="notification is-primary is-light">
-            {{- message -}}
+            <div class="message-body">{{- message -}}</div>
         </div>
     {%- endfor -%}
 
     {%- for message in app.flashes('warning') -%}
         <div class="notification is-warning is-light">
-            {{- message -}}
+            <div class="message-body">{{- message -}}</div>
         </div>
     {%- endfor -%}
 
     {%- for label, messages in app.flashes(['error', 'danger']) -%}
         {%- for message in messages -%}
             <div class="notification is-danger is-light" data-type="{{ label }}">
-                {{- message -}}
+                <div class="message-body">{{- message -}}</div>
             </div>
         {%- endfor -%}
     {%- endfor -%}

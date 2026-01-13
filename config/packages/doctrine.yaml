@@ -37,6 +37,7 @@ when@prod:
     doctrine:
         orm:
             auto_generate_proxy_classes: false
+            enable_native_lazy_objects: true
             proxy_dir: '%kernel.build_dir%/doctrine/orm/Proxies'
             query_cache_driver:
                 type: pool

@@ -21,10 +21,6 @@ use Symfony\Component\Uid\Ulid;
 
 final class UploadController extends AbstractController
 {
-    private const UPLOAD_SUCCESS_MARK = '✓';
-    private const SESSION_KEY_PREV_UPLOADED = 'pico/uploaded';
-    private const SESSION_KEY_GUEST_LINK_ID = 'pico/guest_link_id';
-
     public function __construct
     (
         private EntityManagerInterface $em,
@@ -39,108 +35,81 @@ final class UploadController extends AbstractController
     {
         $request = $requestStack->getCurrentRequest();
         $foundGuestLink = $this->guestLinksRepo->findOneBy(['uniqLinkId' => $guestLinkUniqId /*, 'disabled' => false*/]);
-        // TODO:
-        // - is active?
-        // - is expired?
-        // - upload-limit reached?
 
         if ($foundGuestLink === null) {
             throw $this->createNotFoundException('Guest Link is not found!');
         }
+        // check if guest link still usable (not expired, not disabled and upload-limit not reached yet)
+        $linkIsNoLongerUsable = $foundGuestLink->isExpired(new \DateTimeImmutable('now')) || $foundGuestLink->isMaxAllowedUploadsReached() || $foundGuestLink->isDisabled();
 
-        $request->getSession()->set(self::SESSION_KEY_GUEST_LINK_ID, $foundGuestLink->getUniqLinkId());
+        if ($linkIsNoLongerUsable) {
+            /** @see self::showGuestLinkIsNoLongerActive() */
+            return $this->forward(__CLASS__ . '::showGuestLinkIsNoLongerActive', [
+                'guestLink' => $foundGuestLink,
+            ]);
+        }
 
         return $this->upload($requestStack, $slugger, $foundGuestLink, $inline_form);
     }
 
 
     /*
-     * FIXME: This method needs refactoring
+     * FIXME: This method already needs refactoring
      */
     #[Route('/upload', name: 'pico_upload_file', methods: ['POST', 'PUT', 'GET'])]
     public function upload(RequestStack $requestStack, SluggerInterface $slugger, ?GuestLink $guestLink = null, bool $inline_form = false): Response
     {
-        $requests = $requestStack->getCurrentRequest();
+        $request = $requestStack->getCurrentRequest();
         $isAdmin = $this->isGranted('ROLE_ADMIN');
         $isSubrequest = $requestStack->getParentRequest() !== null;
 
-        $session = $requests->getSession();
-        if ($session->has(self::SESSION_KEY_GUEST_LINK_ID)) {
-            $guestLinkUniqId = $session->get(self::SESSION_KEY_GUEST_LINK_ID);
-            $session->remove(self::SESSION_KEY_GUEST_LINK_ID); // delete immediately
-            /** @var GuestLink|null $guestLink */
-            $guestLink = $this->guestLinksRepo->findOneBy(['uniqLinkId' => $guestLinkUniqId]);
-            // if we have found one, take uniqId
-            $guestLinkUniqId = $guestLink?->getUniqLinkId()->toBase58();
-        }
-        else
-        {
-            $guestLink = null;
-            $guestLinkUniqId = null;
-        }
-
+        // not authenticated and not a guest-link? show 404!
         if ($guestLink === null && $isAdmin === false) {
+            //TODO: 403 if ajax/subrequest?
             throw $this->createNotFoundException('Page not found!');
         }
 
-
-        $uploadForm = null;
-        if( $guestLink !== null && $guestLink->isExpired( new \DateTimeImmutable('now') ) )
-        {
-            $this->addFlash('error', 'This upload link is no longer active. Contact the service owner to get a new link.');
-        }
-        else
-        {
-            $maxUploadFilesize = null;
-            if ($guestLink !== null && $guestLink->isUnlimitedFileSize() === false) {
-                $maxUploadFilesize = $guestLink->getMaxFileSizeInMegaBytes(); // as integer
-            }
-            $uploadForm = $this->createForm(UploadFormType::class, null, [
-                'is_guest_link' => $guestLink !== null,
-                'preselected_auto_expire_value' => $guestLink?->getFileExpiration(),
-                'custom_max_upload_filesize_in_mb' => $maxUploadFilesize,
-                'action' => $guestLink === null ? $this->generateUrl('pico_upload_file') : $this->generateUrl('pico_upload_file_with_guest_link', ['guestLinkUniqId' => $guestLinkUniqId]),
-                'method' => Request::METHOD_POST,
-            ]);
+        $uploadPossible = true; // we assume - upload is always possible
+        $maxUploadFilesize = null; // we assume - there's no upload limit
+        $redirRoute = 'pico_upload_file';
+        $routeParams = [];
+        if ($guestLink !== null) {
+            $routeParams['guestLinkUniqId'] = $guestLink->getUniqLinkId()->toBase58();
+            $redirRoute = 'pico_upload_file_with_guest_link';
         }
 
-        if (null === $guestLink && $isAdmin === false) {
-            //TODO: 403 if ajax/subrequest?
-            $this->createAccessDeniedException();
-        }
 
         $resp = new Response(null);
+        $uploadForm = null;
         $twigCtx = [
-            'form' => $uploadForm?->createView(),
             'showSubmitBtn' => true,
             'showProgressBar' => false,
             'pageTitle' => $isAdmin || $guestLink !== null ? 'Upload' : null,
             'guestLinkUniqId' => $guestLink?->getUniqLinkId()->toBase58(),
         ];
 
-        $redirRoute = 'pico_upload_file';
-        $routeParams = [];
-        if ($guestLink !== null) {
-            $routeParams['guestLinkUniqId'] = $guestLinkUniqId;
-            $redirRoute = 'pico_upload_file_with_guest_link';
+        // trying to upload via guest link, but guest link is no longer usable?
+        if ($guestLink !== null && $guestLink->isUnlimitedFileSize() === false) {
+            $maxUploadFilesize = $guestLink->getMaxFileSizeInMegaBytes(); // as integer
         }
 
-        // file was uploaded, just show the links
-        if ($requests->isMethod(Request::METHOD_GET) && $requests->query->has('uploaded')) {
+        if( $uploadPossible )
+        {
+            // TODO: Make guest-link object as nullable form-option and perform all check in the form-class!
+            $uploadForm = $this->createForm(UploadFormType::class, null, [
+                'is_guest_link' => $guestLink !== null,
+                'preselected_auto_expire_value' => $guestLink?->getFileExpiration(),
+                'custom_max_upload_filesize_in_mb' => $maxUploadFilesize,
+                'action' => $guestLink === null ? $this->generateUrl('pico_upload_file') : $this->generateUrl('pico_upload_file_with_guest_link', ['guestLinkUniqId' => $guestLink->getUniqLinkId()->toBase58()]),
+                'method' => Request::METHOD_POST,
+            ]);
 
-            // no data in session about prev upload? then redirect back to /upload as if it was a "fresh start"
-            if (null === $prevUploadedFileMetadata = $session->get(self::SESSION_KEY_PREV_UPLOADED)) {
-                return $this->redirectToRoute($redirRoute, $routeParams);
-            }
+            $twigCtx['form'] = $uploadForm->createView();
+        }
 
-            $session->remove(self::SESSION_KEY_PREV_UPLOADED);
-            $twigCtx = array_merge([
-                'prevUploadSucceed' => $requests->query->has('uploaded'),
-                'entryUniqId' => $prevUploadedFileMetadata['entryUniqId'],
-                'entryFilename' => $prevUploadedFileMetadata['entryFilename'],
-            ], $twigCtx);
-        } elseif ($requests->isMethod(Request::METHOD_POST)) {
-            $uploadForm->handleRequest($requests);
+        // ...Uploading a file
+        if ($request->isMethod(Request::METHOD_POST)) {
+            $uploadForm->handleRequest($request);
 
             if ($uploadForm->isSubmitted()) {
                 if ($uploadForm->isValid()) {
@@ -200,24 +169,13 @@ final class UploadController extends AbstractController
 
 
                         if ($success) {
-                            $session->remove(self::SESSION_KEY_GUEST_LINK_ID);
-                            $session->remove(self::SESSION_KEY_PREV_UPLOADED);
-                            $this->addFlash('success', 'Upload complete!');
+                            $this->addFlash('success', ' Upload complete!');
 
-                            $routeParams = ['uploaded' => self::UPLOAD_SUCCESS_MARK];
-                            if ($guestLink !== null) {
-                                $routeParams['guestLinkUniqId'] = $guestLinkUniqId;
-                            }
-
-                            $entryUniqId = $entry->getUniqLinkId()->toBase58();
-                            $session->set(self::SESSION_KEY_PREV_UPLOADED, [
-                                'entryUniqId' => $entryUniqId,
-                                'entryFilename' => $entry->getSafeFilename(),
-                                'shortLink' => $this->generateUrl('pico_download_entry_short', ['uniqId' => $entryUniqId]),
-                                'longLink' => $this->generateUrl('pico_download_entry_short', ['uniqId' => $entryUniqId, $entry->getSafeFilename()]),
+                            /** @see self::showDownloadLinks() */
+                            return $this->forward(__CLASS__ . '::showDownloadLinks', [
+                                'entryUniqId' => $entry->getUniqLinkId(),
+                                'safeFilename' => $entry->getSafeFilename(),
                             ]);
-
-                            return $this->redirectToRoute($redirRoute, $routeParams);
                         }
 
                         $this->addFlash('error', 'File Upload failed :/');
@@ -244,23 +202,19 @@ final class UploadController extends AbstractController
         return $this->render('upload/upload_file.html.twig', $twigCtx, $resp);
     }
 
-
-    #[Route('/uploaded/{uniqId}', name: 'pico_uploaded_with_success', methods: ['GET'])]
-    public function successfulUpload(EntryRepository $entriesRepo, ?Ulid $uniqId, ?Ulid $guestLink = null): Response
+    public function showGuestLinkIsNoLongerActive(GuestLink $guestLink): Response
     {
-        $uploadedFile = $entriesRepo->findOneBy(['uniqLinkId' => $uniqId]);
-        $foundGuestLink = $this->guestLinksRepo->findOneBy(['uniqLinkId' => $guestLink]);
-
-        if ($uploadedFile === null) {
-            throw $this->createNotFoundException('File not found!');
-        }
-
-        $isAdmin = $this->isGranted('ROLE_ADMIN');
+        return $this->render('upload/guest_link_not_usable.html.twig', [
+            'pageTitle' => 'Guest Link Inactive',
+        ]);
+    }
+    public function showDownloadLinks(Ulid $entryUniqId, string $safeFilename): Response
+    {
         return $this->render('upload/successful_upload.html.twig', [
-            'entryUniqId' => $uniqId->toBase58(),
-            'entryFilename' => $uploadedFile->getSafeFilename(),
-            'showEditBtn' => $isAdmin,
-            'showUploadAnotherBtn' => $isAdmin || $foundGuestLink !== null,
+            'entryUniqId' => $entryUniqId->toBase58(),
+            'entryFilename' => $safeFilename,
+            'showEditBtn' => false,
+            'showUploadAnotherBtn' => true,
         ]);
     }
 

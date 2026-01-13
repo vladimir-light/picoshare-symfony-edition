@@ -1,0 +1,19 @@
+{% extends 'base_bulma.html.twig' %}
+
+{% block page_title %}{{ pageTitle|default('deaktivted') }}{% endblock %}
+
+{% block body_main_sections %}
+    <section class="section">
+        <div class="container">
+            <h1 class="title">{{ pageTitle|default('deaktivted') }}</h1>
+            <article class="message is-danger">
+                <div class="message-body">
+                    <p>This PicoShare upload link is no longer active.</p>
+
+                    <p>Contact the service owner to get a new link.</p>
+                </div>
+            </article>
+        </div>
+    </section>
+{% endblock %}
+
