@@ -1,6 +1,7 @@
 .idea
 /data/store.db
 /data/test_store.db
+/node_modules/
 ###> symfony/framework-bundle ###
 /.env.local
 /.env.local.php
