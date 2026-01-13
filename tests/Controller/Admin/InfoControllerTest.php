@@ -6,7 +6,7 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Security\Core\User\InMemoryUser;
 
-final class AdminInfoControllerTest extends WebTestCase
+final class InfoControllerTest extends WebTestCase
 {
     private ?KernelBrowser $client = null;
 
@@ -21,10 +21,12 @@ final class AdminInfoControllerTest extends WebTestCase
 
     public function testIndex(): void
     {
-        $this->markTestIncomplete('not implemented yet.');
-        $this->client->request('GET', '/info');
+        $this->client->request('GET', '/information');
 
         self::assertResponseIsSuccessful();
+        self::assertPageTitleContains('– System Information');
+        self::assertPageTitleContains('– System Information');
+        // TODO: actual sizes asserts
     }
 
 }

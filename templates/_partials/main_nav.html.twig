@@ -33,11 +33,6 @@
                     <a class="navbar-item" href="{{- path('pico_admin_guest_links') -}}">
                         Guest Links
                     </a>
-                    {% if app.debug %}
-                    <a class="navbar-item" href="{{- path('pico_dev') -}}">
-                        Dev
-                    </a>
-                    {% endif %}
                 </div>
             {% elseif show_about_link is defined and show_about_link|default %}
                 <div class="navbar-start">

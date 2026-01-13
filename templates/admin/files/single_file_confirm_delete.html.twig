@@ -1,10 +1,10 @@
-{% extends 'base_bulma.html.twig' %}
+{% extends 'crud_bulma.html.twig' %}
 
 {% block page_title %}
     {{ pageTitle|default('_Page_Titlte_') }}
 {% endblock %}
 
-{% block body_main_sections %}
+{% block crud_main %}
     <!-- Main Content -->
 
         <div class="container">
@@ -18,7 +18,7 @@
     {%  if deleteForm is defined and deleteForm|default %}
     <div class="container">
         <section class="mt-5">
-            <p>Permanently delete <span class="filename">{{- foundFile.filename -}}</span>?</p>
+            <p>Permanently delete <span class="entry-filename has-text-weight-medium">{{- foundFile.filename -}}</span>?</p>
 
             {{ form_start(deleteForm) }}
             {% if not deleteForm.vars.valid %}

@@ -11,10 +11,12 @@
          cacheDirectory=".phpunit.cache"
 >
     <php>
-        <ini name="display_errors" value="1" />
-        <ini name="error_reporting" value="-1" />
-        <server name="APP_ENV" value="test" force="true" />
-        <server name="SHELL_VERBOSITY" value="-1" />
+        <ini name="display_errors" value="1"/>
+        <ini name="error_reporting" value="-1"/>
+        <ini name="max_execution_time" value="-1"/>
+        <ini name="date.timezone" value="UTC"/>
+        <server name="APP_ENV" value="test" force="true"/>
+        <server name="SHELL_VERBOSITY" value="-1"/>
     </php>
 
     <testsuites>

@@ -2,12 +2,11 @@
 
 namespace App\Tests\Controller\Admin;
 
-use App\Entity\Entry;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Security\Core\User\InMemoryUser;
 
-final class AdminFilesControllerTest extends WebTestCase
+final class GuestLinksControllerTest extends WebTestCase
 {
     private ?KernelBrowser $client = null;
 
@@ -22,18 +21,14 @@ final class AdminFilesControllerTest extends WebTestCase
 
     public function testIndexAction(): void
     {
-        $this->client->request('GET', '/files');
+        $this->client->request('GET', '/guest-links');
 
         self::assertResponseIsSuccessful();
-    }
+        self::assertPageTitleContains('– Guest Links');
+        self::assertSelectorTextSame('.subtitle', 'Manage guest links');
+        self::assertSelectorCount(1, '.table-container');
 
-    public function testInfoFileAction(): void
-    {
-        $this->markTestIncomplete('not implemented yet. Add `zenstruck/foundry` for DB-fixtures');
-        /** @var Entry $dummyFile */
-        $dummyFile = null;
-        $this->client->request('GET', '/files/' . $dummyFile->getUniqLinkId()->toBase58() . '/info');
-
-        self::assertResponseIsSuccessful();
+        //TODO: Add GuestLinkFactory
+        $this->markTestIncomplete('not done yet! Add GuestLinkFactory');
     }
 }

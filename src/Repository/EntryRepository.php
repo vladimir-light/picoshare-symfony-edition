@@ -65,4 +65,12 @@ class EntryRepository extends ServiceEntityRepository
         $this->getEntityManager()->remove($file);
         $doFlush and $this->getEntityManager()->flush();
     }
+
+    public function getEntriesSpaceUsage(): int
+    {
+        // INFO: I'm switching back from raw-sql to simple queryBuilder without join to `entry_chunks` since total filesize is stored in Entry::size
+        $query = $this->createQueryBuilder('e')->select('SUM(e.size)')->getQuery();
+
+        return (int)$query->getSingleScalarResult();
+    }
 }

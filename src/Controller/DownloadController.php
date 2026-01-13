@@ -60,7 +60,6 @@ final class DownloadController extends AbstractController
         );
 
         $response->headers->set('Content-Type', $entry->getContentType());
-        //$response->headers->set('Content-Type', 'application/octet-stream'); // TODO: When to use.. or do I even need this?
         $response->headers->set('Content-Disposition', $disposition);
 
         $this->tryToCreateDownloadHistory($request, $entry, new \DateTimeImmutable('now'));
@@ -74,11 +73,7 @@ final class DownloadController extends AbstractController
 
 
         $ua = $request->headers->get('user-agent');
-        $ip = $request->server->get('SERVER_NAME');
-        if( empty($ip) )
-        {
-            $ip = $request->server->get('REMOTE_ADDR');
-        }
+        $ip = $request->server->get('REMOTE_ADDR');
 
         $downloadedAt instanceof \DateTimeInterface and $downloadedAt = new \DateTimeImmutable('now');
 

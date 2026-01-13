@@ -38,7 +38,7 @@ final class UploadControllerTest extends WebTestCase
 
     public function testUploadViaGuestLink(): void
     {
-        $this->markTestIncomplete('not implemented yet. Add `zenstruck/foundry` for DB-fixtures');
+        $this->markTestIncomplete('not implemented yet.');
 
         /** @var GuestLink $guestLink */
         $this->client->request('GET', '/g/' . $guestLink->getUniqLinkId()->toBase58());
