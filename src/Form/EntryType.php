@@ -36,7 +36,7 @@ final class EntryType extends AbstractType
                 'constraints' => [
                     //TODO: If self::FIELD_EXPIRES_AFTER is true, then self::FIELD_EXPIRES_AT_DATE must be a valid datetime
                     // new Assert\DateTime(),
-                    new Assert\GreaterThanOrEqual('today UTC')
+                    new Assert\GreaterThanOrEqual(value: 'today UTC')
                 ],
                 'attr' => [
                     'min' => (new \DateTime('today UTC'))->format('Y-m-d')
@@ -46,7 +46,7 @@ final class EntryType extends AbstractType
                 'label' => 'Note',
                 'required' => false,
                 'constraints' => [
-                    new Assert\NotBlank(['allowNull' => true]),
+                    new Assert\NotBlank(allowNull: true),
                 ]
             ]);
 

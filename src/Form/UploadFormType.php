@@ -15,10 +15,9 @@ final class UploadFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $isAdmin = $options['is_admin_form'];
+        $addNoteField = $options['is_guest_link'] === false;
         $preselectedExpiration = $options['preselected_auto_expire_value'];
-
-        // for all, even for admins who have "unlimited"
+        // for all...even for admins, who have "unlimited"
         $maxFilesize = '512'; // TODO: remove after fixing memory-issues with huge files
         if(null !== $options['custom_max_upload_filesize_in_mb'])
         {
@@ -33,11 +32,11 @@ final class UploadFormType extends AbstractType
                 'required' => false,
                 'constraints' => [
                     new Assert\File(
-                        maxSize: $maxFilesize . 'M', // add Mib (for MegaBytes) suffix!
+                        maxSize: $maxFilesize . 'M',
                         binaryFormat: false
                     )
                 ],
-                'help' => 'Max. filesize is: ' . $maxFilesize . ' Mb',
+                'help' => 'Max. filesize is: ' . $maxFilesize . ' MB',
             ]);
         $builder->add('auto_expire', FormTypes\ChoiceType::class, [
             'label' => 'Expiration',
@@ -48,7 +47,7 @@ final class UploadFormType extends AbstractType
         ]);
 
 
-        if ($isAdmin) {
+        if ($addNoteField) {
             $builder->add('note', FormTypes\TextareaType::class, [
                 'label' => 'note',
                 'help' => 'Note is only visible to you',
@@ -72,11 +71,11 @@ final class UploadFormType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'is_admin_form' => false,
+            'is_guest_link' => false,
             'preselected_auto_expire_value' => null,
             'custom_max_upload_filesize_in_mb' => null,
         ]);
-        $resolver->setAllowedTypes('is_admin_form', ['bool']);
+        $resolver->setAllowedTypes('is_guest_link', ['bool']);
         $resolver->setAllowedTypes('preselected_auto_expire_value', ['string', 'null']);
         $resolver->setAllowedTypes('custom_max_upload_filesize_in_mb', ['int', 'null']);
     }

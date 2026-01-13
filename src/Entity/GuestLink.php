@@ -207,6 +207,14 @@ class GuestLink
         return $this;
     }
 
+    public function isMaxAllowedUploadsReached(): bool
+    {
+        if ($this->maxUploads === null) {
+            return false;
+        }
+        return $this->maxUploads <= $this->currentUploads;
+    }
+
 
     public function getFileExpiration(): ?string
     {

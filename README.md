@@ -1,7 +1,8 @@
 About
 ---
-This is a recreation (almost 1:1 clone but with some adjustments) of [PicoShare](https://github.com/mtlynch/picoshare) by [Michael Lynch](https://mtlynch.io/).
-This project built with [Symfony](https://symfony.com/), [Twig](https://twig.symfony.com/) and [Doctrine](https://www.doctrine-project.org/).
+This is a recreation (not a clone, but very close with some adjustments) of [PicoShare](https://github.com/mtlynch/picoshare)
+by [Michael Lynch](https://mtlynch.io/).
+This project built with [Symfony](https://symfony.com/), [Twig](https://twig.symfony.com/) and [Doctrine](https://www.doctrine-project.org/)
 
 What is PicoShare?
 ---
@@ -14,28 +15,52 @@ PicoShare is easy to **self-host**.
 Why?
 ---
 
-I use the self-hosted version of PicoShare by myself. I have always been fascinated by the simplicity and elegance of PicoShare.
-Originally, I wanted to use it as a “copycat project” to learn new programming languages, especially when it comes to web projects. I just didn't want to create another to-do list ...again.
+I have always been fascinated by the simplicity and elegance of PicoShare.
+Originally, I wanted to use it as a “copycat project” to learn new programming languages, especially when it comes to web projects. I just didn't want to create
+another to-do list ...again.
 
-After examining the source code of PicoShare a little more closely, I realized that simply copying it while using a “new/unknown” language would **not work at all!** First, my Go-Lang skills are not sufficient enough. Second, PicoShare has more to it than meets the eye.
+After examining the source code of PicoShare more closely, I realized that simply copying it while using a “new/unknown” language would **not work at all!**
+First, my Go-Lang skills are not sufficient enough for just "read the source and recreate it". Second, PicoShare has more to it than meets the eye, especially
+it's optimizations to handle huge files while still remaining small footprint.
 
-So I decided to start by copying the original (not 100% 1:1 clone, but very close) using a stack I'm most familiar with (PHP, Symfony and Doctrine). That way I could "reverse engineer it" without distracting myself with "how to do *this* with *that* language."
+So I decided to recreate the original using a stack I'm most familiar with - PHP, Symfony and Doctrine. 
+That way I could "reverse engineer it" without distracting myself with "how to do *this* with *that* language."
 
-That's how PicoShare Symfony Edition came about. 
+That's how PicoShare Symfony Edition came about.
 
+
+Differences to original
+---
+
+As mentioned before, it is **not a 1:1 clone**.
+
+Main difference - PicoShare is a highly optimized app with a small footprint, perfectly fine-tuned to be self-hosted or running on a tiny VPS. I strongly
+suggest you to read Michael's amazing [post about debugging and haunting memory leaks](https://mtlynch.io/notes/picoshare-perf/) in PicoShare.
+It reveals a lot of details on how and why some decisions was made.
+
+My version serves a more **recreational/educational** purpose. After implementing first working "prototype"
+
+My version:
+
+- ... use DB-Transactions for the most parts.
+- ... will use some JS-Frameworks/npm-packages/build-steps/bundlers instead of
+  original's [custom web components](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements) with almost no dependencies.
+- ... will probably have completely different techniques to solve memory-issues, since I use PHP (with a separate server Apache/nginx)
+- ... use slightly different admin-user authentication approach, but still very close to original without a "create admin-user first" step.
+- ... will NOT have a `/settings` page in admin-area (at least not for now), since I do not see any advantages of storing one single setting in DB.
 
 To-Do
 ---
 
-- [x] [general] Essential functionality (upload+download)
-- [x] [admin] Essential admin-CRUD (files, guest-links)
+- [x] [general] Essential functionality (upload+download).
+- [x] [admin] Essential admin-CRUD (files, guest-links).
 - [x] [general] primitive tests 👶
-- [ ] [admin] -> Settings and Info routes and controllers
-- [ ] [upload] -> auto splitting files in chunks with fixed size 
-- [ ] [general] -> API-Controllers 
+- [ ] [admin] -> Settings and Info routes and controllers.
+- [ ] [upload] -> auto splitting files in chunks with fixed size.
+- [ ] [general] -> API-Controllers.
 - [ ] [upload] -> Fine-tune **memory-usage / memory-leaks** for bigger files.
-- [ ] [css/js] -> Move custom CSS/JS to separate files. 
-- [ ] [ui/ux] -> Darg&Drop + Dropzone + async uploads
+- [ ] [css/js] -> Move custom CSS/JS to separate files.
+- [ ] [ui/ux] -> Darg&Drop + Dropzone + async uploads.
 
 
 

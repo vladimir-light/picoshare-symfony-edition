@@ -96,7 +96,7 @@ final class UploadController extends AbstractController
                 $maxUploadFilesize = $guestLink->getMaxFileSizeInMegaBytes(); // as integer
             }
             $uploadForm = $this->createForm(UploadFormType::class, null, [
-                'is_admin_form' => $isAdmin,
+                'is_guest_link' => $guestLink !== null,
                 'preselected_auto_expire_value' => $guestLink?->getFileExpiration(),
                 'custom_max_upload_filesize_in_mb' => $maxUploadFilesize,
                 'action' => $guestLink === null ? $this->generateUrl('pico_upload_file') : $this->generateUrl('pico_upload_file_with_guest_link', ['guestLinkUniqId' => $guestLinkUniqId]),
@@ -125,9 +125,10 @@ final class UploadController extends AbstractController
             $redirRoute = 'pico_upload_file_with_guest_link';
         }
 
+        // file was uploaded, just show the links
         if ($requests->isMethod(Request::METHOD_GET) && $requests->query->has('uploaded')) {
 
-            // no data in session about prev upload? then redir back to /upload
+            // no data in session about prev upload? then redirect back to /upload as if it was a "fresh start"
             if (null === $prevUploadedFileMetadata = $session->get(self::SESSION_KEY_PREV_UPLOADED)) {
                 return $this->redirectToRoute($redirRoute, $routeParams);
             }
@@ -154,8 +155,8 @@ final class UploadController extends AbstractController
                             ->setUniqLinkId(new Ulid())
                             ->setNote($note)
                             ->setSize($uploadedFile->getSize())
-                            ->setFilename($originalFilename . '.' . $uploadedFile->guessExtension()) //FIXME: some extension are wrong! e.G *.phar -> *.bin
-                            ->setSafeFilename($safeFilename . '.' . $uploadedFile->guessExtension()) //FIXME: some extension are wrong! e.G *.phar -> *.bin
+                            ->setFilename($originalFilename . '.' . $uploadedFile->getClientOriginalExtension())
+                            ->setSafeFilename($safeFilename . '.' . $uploadedFile->getClientOriginalExtension())
                             ->setContentType($uploadedFile->getMimeType())
                             ->setGuestLink(null);
 
@@ -238,7 +239,7 @@ final class UploadController extends AbstractController
         if ($inline_form && $isSubrequest) {
             $twigCtx['pageTitle'] =  $isAdmin || $guestLink !== null ? 'Upload' : null;
             return $this->render('upload/_partials/_form_upload_file.html.twig', $twigCtx, $resp);
-        };
+        }
 
         return $this->render('upload/upload_file.html.twig', $twigCtx, $resp);
     }
@@ -258,7 +259,6 @@ final class UploadController extends AbstractController
         return $this->render('upload/successful_upload.html.twig', [
             'entryUniqId' => $uniqId->toBase58(),
             'entryFilename' => $uploadedFile->getSafeFilename(),
-            //'guestLink' => $foundGuestLink !== null ? $foundGuestLink : false,
             'showEditBtn' => $isAdmin,
             'showUploadAnotherBtn' => $isAdmin || $foundGuestLink !== null,
         ]);
@@ -270,6 +270,5 @@ final class UploadController extends AbstractController
         $totalUploads = $this->entriesRepo->count(['guestLink' =>$guestLink]);
         $totalUploads++;
         $guestLink->setCurrentUploads($totalUploads);
-        // TODO: If new $totalUploads >= maxUploads, do "lock" the guestLink!
     }
 }

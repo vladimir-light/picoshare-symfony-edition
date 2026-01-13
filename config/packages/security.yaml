@@ -1,16 +1,19 @@
 security:
     # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
     password_hashers:
-        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto' #<- change it to 'plaintext' if you think it should be "close to original" where admin's password is stored as plaintext in ENV variable
 
-    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
+
     providers:
         users_in_memory:
             memory:
                 users:
                     pico_admin:
-                        #Symfony\Component\PasswordHasher\Hasher\MigratingPasswordHasher
-                        password: '$2y$13$JKvWKAh./ZD79xpW3lJv/Olq7ws2oXySIcV50/Lv3xhx9fgtbvPqq' # somesecretpass
+                        # if you'd like to use a different password than 'somesecretpass', you'll need to get its hashed version.
+                        # use bin/console security:hash-password --no-interaction <your-password>
+                        # Copy and paste your hash instead of the default one.
+                        password: '$2y$13$JKvWKAh./ZD79xpW3lJv/Olq7ws2oXySIcV50/Lv3xhx9fgtbvPqq' # 'somesecretpass' (without quotes) as hash
+                        # password: '%env(APP_DEFAULT_ADMIN_PASS)%' # use this instead of a hash if you'd like plaintext approach.
                         roles: [ 'ROLE_ADMIN', 'ROLE_SUPER_ADMIN' ]
 
     firewalls:

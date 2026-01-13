@@ -15,7 +15,7 @@
                     <strong>Upload data</strong>:&nbsp;{{- currentUsage.totalFiles|human_filesize -}}
                 </li>
                 <li>
-                    <strong>Database files</strong>:&nbsp;{{- currentUsage.totalDbFilesize|human_filesize -}}
+                    <strong>Database files</strong>:&nbsp;{{- currentUsage.totalDbFilesize|human_filesize -}} <button id="db-space-usage-info"><i class="fa-solid fa-circle-info has-text-primary"></i></button>
                 </li>
             </ul>
         {% endif %}
