@@ -40,9 +40,9 @@ class EntryRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
-    public function doDeleteEntryAndAllRelatedData(?Entry $file, ?bool $doFlush = false): void
+    public function doDeleteEntryAndAllRelatedData(Entry|int $entryOrId, bool $doFlush = false): void
     {
-        $internalEntryId = $file->getId();
+        $internalEntryId = $entryOrId instanceof Entry ? $entryOrId->getId() : $entryOrId;
         // first, delete downloads-history
         // then, delete all chunks
         // and then delete the entry (file)
@@ -62,7 +62,7 @@ class EntryRepository extends ServiceEntityRepository
             'entryId' => $internalEntryId
         ]);
 
-        $this->getEntityManager()->remove($file);
+        $this->getEntityManager()->remove($entryOrId);
         $doFlush and $this->getEntityManager()->flush();
     }
 
@@ -72,5 +72,27 @@ class EntryRepository extends ServiceEntityRepository
         $query = $this->createQueryBuilder('e')->select('SUM(e.size)')->getQuery();
 
         return (int)$query->getSingleScalarResult();
+    }
+
+    /**
+     * @param \DateTimeImmutable $now
+     * @return list<Entry>|list<int>
+     */
+    public function getAllExpiredEntries(\DateTimeImmutable $now, bool $asFlatIdsList = false): array
+    {
+        // INFO: I know! I could just use CURRENT_DATE or CURRENT_TIMESTAMP instead of providing a DateTime as a parameter, but these are too specific to SQLite.
+        //       Also, it doesn't give me an ability to "time travel" if I need it.
+        $qb = $this->createQueryBuilder('e')
+            ->andWhere('e.expiresAt IS NOT NULL')
+            ->andWhere('e.expiresAt <= :dt_now')
+            ->setParameter('dt_now', $now);
+
+        if ($asFlatIdsList) {
+            $qb->select('e.id AS entry_id');
+            $data = $qb->getQuery()->getArrayResult();
+            return array_column($data, 'entry_id');
+        }
+
+        return $qb->getQuery()->getResult();
     }
 }
