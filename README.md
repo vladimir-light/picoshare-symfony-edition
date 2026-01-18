@@ -38,7 +38,8 @@ Main difference - PicoShare is a highly optimized app with a small footprint, pe
 suggest you to read Michael's amazing [post about debugging and haunting memory leaks](https://mtlynch.io/notes/picoshare-perf/) in PicoShare.
 It reveals a lot of details on how and why some decisions was made.
 
-My version serves a more **recreational/educational** purpose. After implementing first working "prototype"
+My version serves a more **recreational/educational** purpose. After implementing the first working "prototype" I decided to take a slightly different approach and remain within the Symfony ecosystem for as long as possible.
+Furthermore, this project works well as a 'playground'. 
 
 My version:
 
@@ -55,7 +56,6 @@ To-Do
 - [x] [general] Essential functionality (upload+download).
 - [x] [admin] Essential admin-CRUD (files, guest-links).
 - [x] [general] primitive tests 👶
-- [ ] [admin] -> Settings and Info routes and controllers.
 - [ ] [upload] -> auto splitting files in chunks with fixed size.
 - [ ] [general] -> API-Controllers.
 - [ ] [upload] -> Fine-tune **memory-usage / memory-leaks** for bigger files.
