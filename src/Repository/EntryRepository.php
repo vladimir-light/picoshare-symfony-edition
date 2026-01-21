@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Entry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Uid\Ulid;
 
 /**
  * @extends ServiceEntityRepository<Entry>
@@ -94,5 +95,27 @@ class EntryRepository extends ServiceEntityRepository
         }
 
         return $qb->getQuery()->getResult();
+    }
+
+
+    /**
+     * @param Ulid $uniqId
+     * @return array{0: ?Ulid, 1: ?string, 2: ?string}|false
+     */
+    public function getEntrysEssentialMetadata(Ulid $uniqId): array|false
+    {
+        $qb = $this->createQueryBuilder('e')
+            ->select('e.uniqLinkId AS uniqId')
+            ->addSelect('e.safeFilename AS safeFilename')
+            ->addSelect('e.filename AS filename')
+            ->andWhere('e.uniqLinkId = :uniqId')->setParameter('uniqId', $uniqId->toBinary());
+
+        $found = $qb->getQuery()->getArrayResult();
+        if (isset($found[0]['uniqId'])) {
+            $found = reset($found);
+            return [$found['uniqId'], $found['safeFilename'], $found['filename']];
+        }
+
+        return false;
     }
 }
