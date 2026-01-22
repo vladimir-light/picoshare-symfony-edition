@@ -50,26 +50,28 @@
                         </button>
                     </div>
                 {% endif %}
-                <div class="navbar-item">
-                    {% if is_granted('IS_AUTHENTICATED') is same as(false) %}
+
+                {% if is_granted('IS_AUTHENTICATED') is same as(false) %}
+                    <div class="navbar-item">
                         <div class="buttons">
-                            <a class="button is-light" href="{{- path('pico_admin_login') -}}">
+                            <a class="button" href="{{- path('pico_admin_login') -}}">
                                 Log in
                             </a>
                         </div>
-                    {% else %}
-                        <!-- user menu -->
-                        <div class="navbar-item has-dropdown is-hoverable">
-                            <a class="navbar-link" role="menuitem">System</a>
-                            <div class="navbar-dropdown is-right">
-                                <a class="navbar-item" role="menuitem" href="{{- path('pico_admin_info') -}}">Information</a>
-                                <hr class="navbar-divider">
-                                <a id="navbar-log-out" class="navbar-item" role="menuitem"
-                                   href="{{- path('pico_admin_logout') -}}">Log Out</a>
-                            </div>
+                    </div>
+                {% else %}
+                    <!-- user menu -->
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <a class="navbar-link" role="menuitem">System</a>
+                        <div class="navbar-dropdown is-right">
+                            <a class="navbar-item" role="menuitem" href="{{- path('pico_admin_info') -}}">Information</a>
+                            <hr class="navbar-divider">
+                            <a id="navbar-log-out" class="navbar-item" role="menuitem"
+                               href="{{- path('pico_admin_logout') -}}">Log Out</a>
                         </div>
-                    {% endif %}
-                </div>
+                    </div>
+                {% endif %}
+
             </div>
         </div>
     </div>

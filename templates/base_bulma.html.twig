@@ -9,83 +9,33 @@
     {% block stylesheets '' %}
     {% block javascripts '' %}
 
-        {% block on_page_style_tag %}
-            <style>
-            /* Light/Dark Mode CSS Variables */
-            :root {
-            --bg-color: #ffffff;
-            --text-color: #4a4a4a;
-            --box-bg: #ffffff;
-            --box-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1), 0 0px 0 1px rgba(10, 10, 10, 0.02);
-            --footer-bg: #fafafa;
-            --border-color: #dbdbdb;
-            }
-
-            [data-theme="dark"] {
-            --bg-color: #1a1a1a;
-            --text-color: #e0e0e0;
-            --box-bg: #2a2a2a;
-            --box-shadow: 0 0.5em 1em -0.125em rgba(0, 0, 0, 0.3), 0 0px 0 1px rgba(0, 0, 0, 0.1);
-            --footer-bg: #242424;
-            --border-color: #3a3a3a;
-            }
-
+    {% block on_page_style_tag %}
+        <style>
+            :root{}
             body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            transition: background-color 0.3s ease, color 0.3s ease;
-            /* Sticky footer layout */
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
             }
 
             /* Main content area grows to fill available space */
             .main-content {
-            flex: 1;
-            }
-
-            .box {
-            background-color: var(--box-bg);
-            box-shadow: var(--box-shadow);
-            }
-
-            .footer {
-            background-color: var(--footer-bg);
-            }
-
-            [data-theme="dark"] .content {
-            color: var(--text-color);
-            }
-
-            /* Theme toggle button styling */
-            .theme-toggle {
-            cursor: pointer;
-            background: none;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            transition: all 0.3s ease;
-            }
-
-            .theme-toggle:hover {
-            background-color: rgba(255, 255, 255, 0.1);
+                flex: 1;
             }
 
             .flash-messages:empty {
                 display: none !important;
             }
-            </style>
-        {% endblock on_page_style_tag %}
-    </head>
-    {% block body %}
+        </style>
+    {% endblock on_page_style_tag %}
+</head>
+{% block body %}
     <body>
-        {% block body_contents %}
-            {% block body_main_nav %}
-                {% include '_partials/main_nav.html.twig' with {} only %}
-            {% endblock body_main_nav %}
-            <main class="main-content">
+    {% block body_contents %}
+        {% block body_main_nav %}
+            {% include '_partials/main_nav.html.twig' with { show_theme_toggle: false } only %}
+        {% endblock body_main_nav %}
+        <main class="main-content">
             {% block flash_messahes %}
                 <!-- Flash-Messages -->
                 {% include '_partials/flash_messages.html.twig' with {} only %}
@@ -97,84 +47,72 @@
                     </div>
                 </section>
             {% endblock body_main_sections %}
-            </main>
-            {% block body_main_footer %}
-                {% include '_partials/main_footer.html.twig' with {} only %}
-            {% endblock body_main_footer %}
-        {% endblock body_contents %}
-        {% block page_end_javascript %}
-            <!-- JavaScript for navbar burger and theme toggle -->
-            <script>
-                document.addEventListener('DOMContentLoaded', () => {
-                    // Navbar burger toggle
-                    const burgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
-                    burgers.forEach(burger => {
-                        burger.addEventListener('click', () => {
-                            const target = burger.dataset.target;
-                            const menu = document.getElementById(target);
-                            burger.classList.toggle('is-active');
-                            menu.classList.toggle('is-active');
-                        });
+        </main>
+        {% block body_main_footer %}
+            {% include '_partials/main_footer.html.twig' with {} only %}
+        {% endblock body_main_footer %}
+    {% endblock body_contents %}
+    {% block page_end_javascript %}
+        <!-- JavaScript for navbar burger and theme toggle -->
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                // Navbar burger toggle
+                const burgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+                burgers.forEach(burger => {
+                    burger.addEventListener('click', () => {
+                        const target = burger.dataset.target;
+                        const menu = document.getElementById(target);
+                        burger.classList.toggle('is-active');
+                        menu.classList.toggle('is-active');
                     });
-
-                    // copy-to-clipboard handler for all "copy" buttons
-                    if( navigator.clipboard && window.isSecureContext )
-                    {
-                        document.querySelectorAll('button[data-clipboard-text]:not([aria-busy="true"]:enabled)').forEach(copyBtn => {
-                            copyBtn.addEventListener('click', async (ev) => {
-                                let success = false;
-                                const copyBtnEl = ev.currentTarget;
-                                const content = copyBtnEl.dataset.clipboardText;
-                                const oldContents =  ev.currentTarget.innerHTML;
-                                try {
-                                    await navigator.clipboard.writeText(content);
-                                    success = true;
-                                    // TODO: snackbar notification -> https://www.w3schools.com/howto/howto_js_snackbar.asp
-                                    copyBtnEl.ariaBusy = true;
-                                    copyBtnEl.innerHTML = '<i class="fa-regular fa-circle-check"></i>';
-                                } catch (err) {
-                                    console.error(err);
-                                } finally {
-                                    setTimeout(() => {
-                                        copyBtnEl.ariaBusy = false;
-                                        copyBtnEl.innerHTML = oldContents;
-                                    }, success ? 500: 1500 );
-                                }
-                            });
-                        });
-                    }
-                    else
-                    {
-                        console.warm('Clipboard API disabled!');
-                    }
-
-                    // Theme toggle functionality
-                    const themeToggle = document.getElementById('themeToggle');
-                    const themeIcon = document.getElementById('themeIcon');
-                    const body = document.body;
-
-                    // Load saved theme or default to light
-                    const savedTheme = localStorage.getItem('theme') || 'light';
-                    body.setAttribute('data-theme', savedTheme);
-                    updateThemeIcon(savedTheme);
-
-                    // Toggle theme on button click
-                    themeToggle.addEventListener('click', () => {
-                        const currentTheme = body.getAttribute('data-theme');
-                        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-
-                        body.setAttribute('data-theme', newTheme);
-                        localStorage.setItem('theme', newTheme);
-                        updateThemeIcon(newTheme);
-                    });
-
-                    // Update icon based on theme
-                    function updateThemeIcon(theme) {
-                        themeIcon.textContent = theme === 'light' ? '🌙' : '☀️';
-                    }
                 });
-            </script>
-        {% endblock page_end_javascript %}
+            });
+            // copy-to-clipboard handler for all "copy" buttons
+            if( navigator.clipboard && window.isSecureContext )
+            {
+                document.querySelectorAll('button[data-clipboard-text]:not([aria-busy="true"]:enabled)').forEach(copyBtn => {
+                    copyBtn.addEventListener('click', async (ev) => {
+                        let success = false;
+                        const copyBtnEl = ev.currentTarget;
+                        const content = copyBtnEl.dataset.clipboardText;
+                        const oldContents =  ev.currentTarget.innerHTML;
+                        try {
+                            await navigator.clipboard.writeText(content);
+                            success = true;
+                            // TODO: snackbar notification -> https://www.w3schools.com/howto/howto_js_snackbar.asp
+                            copyBtnEl.ariaBusy = true;
+                            copyBtnEl.innerHTML = '<i class="fa-regular fa-circle-check"></i>';
+                        } catch (err) {
+                            console.error(err);
+                        } finally {
+                            setTimeout(() => {
+                                copyBtnEl.ariaBusy = false;
+                                copyBtnEl.innerHTML = oldContents;
+                            }, success ? 500: 1500 );
+                        }
+                    });
+                });
+            }
+            else
+            {
+                console.warm('Clipboard API disabled!');
+            }
+
+            // a bit uploaded file magic
+            const fileInput = document.querySelector("form[enctype] input[type=file]");
+            if( fileInput )
+            {
+                fileInput.onchange = () => {
+                    if (fileInput.files.length > 0) {
+                        const fileName = document.querySelector(".file-label .file-name");
+                        fileName.textContent = fileInput.files[0].name;
+                        fileName.setAttribute('title', fileInput.files[0].name)
+                    }
+                };
+            }
+
+        </script>
+    {% endblock page_end_javascript %}
     </body>
-    {% endblock body %}
+{% endblock body %}
 </html>
