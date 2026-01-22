@@ -27,7 +27,7 @@ final class UploadFormType extends AbstractType
 
         $builder
             ->add('file', FormTypes\FileType::class, [
-                'label' => 'Choose a file',
+                'label' => 'Choose a file...',
                 'mapped' => false,
                 'required' => false,
                 'constraints' => [
@@ -49,7 +49,7 @@ final class UploadFormType extends AbstractType
 
         if ($addNoteField) {
             $builder->add('note', FormTypes\TextareaType::class, [
-                'label' => 'note',
+                'label' => 'Note',
                 'help' => 'Note is only visible to you',
                 'required' => false,
             ]);

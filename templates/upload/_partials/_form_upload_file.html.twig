@@ -1,3 +1,5 @@
+{% form_theme form '_form/custom_widgets.html.twig' %}
+
 {% if pageTitle|default %}
     <h2 class="title">{{- pageTitle -}}</h2>
 {% endif %}
@@ -6,6 +8,9 @@
 {%- endif -%}
     {{ form_start(form) }}
 <fieldset>
+    {% if form.file is defined %}
+        {{ form_row(form.file) }}
+    {% endif %}
     {{ form_rest(form) }}
     {% if showSubmitBtn|default %}
         <button type="submit" class="button is-info">Uplaod</button>
