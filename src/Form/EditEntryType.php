@@ -12,7 +12,7 @@ use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
 
-final class EntryType extends AbstractType
+final class EditEntryType extends AbstractType
 {
     public const FIELD_EXPIRES_AFTER = 'delete_after_expiration';
     private const FIELD_FILENAME = 'filename';
@@ -34,9 +34,8 @@ final class EntryType extends AbstractType
                 'property_path' => 'expiresAt',
                 'help' => 'After submit, the real expiration DateTime will be set to 23:59:59 of previous date',
                 'constraints' => [
-                    //TODO: If self::FIELD_EXPIRES_AFTER is true, then self::FIELD_EXPIRES_AT_DATE must be a valid datetime
-                    // new Assert\DateTime(),
-                    new Assert\GreaterThanOrEqual(value: 'today UTC')
+                    // This constraint kicks in only if validation group 'validate_expires_at' is present
+                    new Assert\GreaterThanOrEqual(value: 'today UTC', groups: ['validate_expires_at'])
                 ],
                 'attr' => [
                     'min' => (new \DateTime('today UTC'))->format('Y-m-d')
@@ -67,6 +66,13 @@ final class EntryType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Entry::class,
+            'validation_groups' => static function($form) {
+                // If checkbox "Delete after expiration" is set, expires_at form-field is no longer optional
+                if($form->get(self::FIELD_EXPIRES_AFTER)->getData()){
+                    return ['Default', 'validate_expires_at'];
+                }
+                return ['Default'];
+            },
         ]);
     }
 }

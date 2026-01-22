@@ -4,7 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Download;
 use App\Entity\Entry;
-use App\Form\EntryType;
+use App\Form\EditEntryType;
 use App\Repository\DownloadRepository;
 use App\Repository\EntryRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -75,7 +75,7 @@ final class FilesController extends AbstractController
     {
         $file = $this->getEntryOrPanicWith404($uniqId);
 
-        $editForm = $this->createForm(EntryType::class, $file, [
+        $editForm = $this->createForm(EditEntryType::class, $file, [
             'method' => Request::METHOD_POST,
             'action' => $this->generateUrl('pico_admin_files_edit', ['uniqId' => $file->getUniqLinkId()->toBase58()]),
         ]);
@@ -89,7 +89,7 @@ final class FilesController extends AbstractController
             {
                 if( $editForm->isValid())
                 {
-                    $hasExpirationDate = $editForm->get(EntryType::FIELD_EXPIRES_AFTER)?->getData();
+                    $hasExpirationDate = $editForm->get(EditEntryType::FIELD_EXPIRES_AFTER)->getData();
                     if( false === $hasExpirationDate )
                     {
                         $file->setExpiresAt(null);

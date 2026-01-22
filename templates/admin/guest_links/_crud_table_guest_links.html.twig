@@ -74,7 +74,7 @@
                     <td class="is-vcentered">
                         <div class="buttons">
                             {% if _guestLinkUsable %}
-                            <button class="button is-dark" title="Copy Link">
+                            <button class="button is-dark" title="Copy Link" data-clipboard-text="{{ url('pico_upload_file_with_guest_link', { guestLinkUniqId: guestLink.uniqLinkId.toBase58 }) }}">
                                 <i class="fa-solid fa-copy"></i>
                             </button>
                             {% endif %}

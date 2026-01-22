@@ -117,6 +117,37 @@
                         });
                     });
 
+                    // copy-to-clipboard handler for all "copy" buttons
+                    if( navigator.clipboard && window.isSecureContext )
+                    {
+                        document.querySelectorAll('button[data-clipboard-text]:not([aria-busy="true"]:enabled)').forEach(copyBtn => {
+                            copyBtn.addEventListener('click', async (ev) => {
+                                let success = false;
+                                const copyBtnEl = ev.currentTarget;
+                                const content = copyBtnEl.dataset.clipboardText;
+                                const oldContents =  ev.currentTarget.innerHTML;
+                                try {
+                                    await navigator.clipboard.writeText(content);
+                                    success = true;
+                                    // TODO: snackbar notification -> https://www.w3schools.com/howto/howto_js_snackbar.asp
+                                    copyBtnEl.ariaBusy = true;
+                                    copyBtnEl.innerHTML = '<i class="fa-regular fa-circle-check"></i>';
+                                } catch (err) {
+                                    console.error(err);
+                                } finally {
+                                    setTimeout(() => {
+                                        copyBtnEl.ariaBusy = false;
+                                        copyBtnEl.innerHTML = oldContents;
+                                    }, success ? 500: 1500 );
+                                }
+                            });
+                        });
+                    }
+                    else
+                    {
+                        console.warm('Clipboard API disabled!');
+                    }
+
                     // Theme toggle functionality
                     const themeToggle = document.getElementById('themeToggle');
                     const themeIcon = document.getElementById('themeIcon');

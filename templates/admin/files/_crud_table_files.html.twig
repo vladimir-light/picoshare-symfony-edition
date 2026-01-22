@@ -13,7 +13,7 @@
         <tbody>
         {% if paginatedResults %}
             {% for file in paginatedResults %}
-                <tr>
+                <tr {% if app.debug %}data-entry-id="{{- file.id -}}" data-entry-ulid="{{- file.uniqLinkId -}}"{% endif %}>
                     {# filename #}
                     <td class="is-vcentered">
                         <a href="{{ path('pico_download_entry_short', {uniqId: file.uniqLinkId.toBase58}) }}" target="_blank">
@@ -52,7 +52,7 @@
                             <a class="button is-link" title="Edit" href="{{- path('pico_admin_files_edit', { uniqId: file.uniqLinkId.toBase58 }) -}}">
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </a>
-                            <button class="button is-info" title="Copy Link">
+                            <button class="button is-info" title="Copy Link" data-clipboard-text="{{- url('pico_download_entry_short', {uniqId: file.uniqLinkId.toBase58}) -}}">
                                 <i class="fa-solid fa-copy"></i>
                             </button>
                         </div>
