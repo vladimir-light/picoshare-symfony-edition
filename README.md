@@ -56,7 +56,7 @@ To-Do
 - [x] [general] Essential functionality (upload+download).
 - [x] [admin] Essential admin-CRUD (files, guest-links).
 - [x] [general] primitive tests 👶
-- [ ] [upload] -> auto splitting files in chunks with fixed size.
+- [x] [upload] -> auto splitting files in chunks with fixed size.
 - [ ] [general] -> API-Controllers.
 - [ ] [upload] -> Fine-tune **memory-usage / memory-leaks** for bigger files.
 - [ ] [css/js] -> Move custom CSS/JS to separate files.
