@@ -23,16 +23,14 @@ final class DownloadController extends AbstractController
 {
     public function __construct(
         private EntityManagerInterface $em,
-        private EntryRepository $entriesRepo,
-        private EntryChunkRepository $dataChunksRepo,
     )
     {}
 
     #[Route('/{uniqId}/{filename}', name: 'pico_download_entry_full', requirements: ['uniqId' => Requirement::UID_BASE58], methods: ['GET'])]
     #[Route('/{uniqId}', name: 'pico_download_entry_short', requirements: ['uniqId' => Requirement::UID_BASE58], methods: ['GET'])]
-    public function download(Request $request, Ulid $uniqId, ?string $filename = null): Response
+    public function download(Request $request, EntryRepository $filesRepo, EntryChunkRepository $chunksRepo, Ulid $uniqId, ?string $filename = null): Response
     {
-        $entry = $this->entriesRepo->findOneBy(['uniqLinkId' => $uniqId]);
+        $entry = $filesRepo->findOneBy(['uniqLinkId' => $uniqId]);
         if ($entry === null) {
             throw $this->createNotFoundException('File not found!');
         }
@@ -44,14 +42,21 @@ final class DownloadController extends AbstractController
             }
         }
 
-        $stream = $entry->getEntryChunks()->first()->getDataChunk();
+        $this->tryToCreateDownloadHistory($request, $entry, new \DateTimeImmutable('now'));
+
         $response = new StreamedResponse();
-        $response->setCallback(function() use ($stream){
-            while (!feof($stream)) {
-                echo fread($stream, 8192);
-                flush();
+        $response->setCallback(function () use ($entry, $chunksRepo) {
+            $totalChunks = $entry->getEntryChunks()->count();
+            for ($idx = 0; $idx < $totalChunks; $idx++) {
+                $chunk = $chunksRepo->findOneBy(['entry' => $entry, 'dataChunkIndex' => $idx]);
+                $chunkContents = $chunk->getDataChunk();
+                while (!feof($chunkContents)) {
+                    echo fread($chunkContents, $chunk->getDataChunkSize());
+                    flush();
+                }
+                fclose($chunkContents);
             }
-            fclose($stream);
+            unset($chunk, $chunkContents);
         });
 
         $disposition = HeaderUtils::makeDisposition(
@@ -61,8 +66,7 @@ final class DownloadController extends AbstractController
 
         $response->headers->set('Content-Type', $entry->getContentType());
         $response->headers->set('Content-Disposition', $disposition);
-
-        $this->tryToCreateDownloadHistory($request, $entry, new \DateTimeImmutable('now'));
+        $response->headers->set('Content-Length', $entry->getSize());
 
         return $response;
     }
@@ -70,8 +74,6 @@ final class DownloadController extends AbstractController
     private function tryToCreateDownloadHistory(Request $request, Entry $file, ?\DateTimeInterface $downloadedAt = null): void
     {
         // TODO: Maybe better with onKernelFinishRequest/onKernelTerminate - if possible - since $request could be null
-
-
         $ua = $request->headers->get('user-agent');
         $ip = $request->server->get('REMOTE_ADDR');
 

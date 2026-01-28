@@ -14,22 +14,23 @@
 
 
 {% block body_main_sections %}
-<section class="section">
-    <div class="container">
-        {% if form|default %}
-            {% if pageTitle|default %}
-                <h2 class="title">{{- pageTitle -}}</h2>
+    <section class="section">
+        <div class="container">
+            {% if form|default %}
+                <div id="main-form-wrapper">
+                    {% if pageTitle|default %}
+                        <h2 class="title">{{- pageTitle -}}</h2>
+                    {% endif %}
+                    {% include 'upload/_partials/_form_upload_file.html.twig' with {
+                        form: form,
+                        showSubmitBtn: showSubmitBtn,
+                        pageTitle: false
+                    } only %}
+                </div>
+                {% if showProgressBar|default %}
+                    {% include 'upload/_partials/_upload_progress_bar.html.twig' with { currentValue: 0 } only %}
+                {% endif %}
             {% endif %}
-            {% include 'upload/_partials/_form_upload_file.html.twig' with {
-                form: form,
-                showSubmitBtn: showSubmitBtn,
-                pageTitle: false
-            } only %}
-
-            {% if showProgressBar|default %}
-                {% include 'upload/_partials/_upload_progress_bar.html.twig' with { currentValue: 0 } only %}
-            {% endif %}
-        {% endif %}
-    </div>
-</section>
+        </div>
+    </section>
 {% endblock %}

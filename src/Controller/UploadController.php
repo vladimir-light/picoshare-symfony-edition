@@ -3,20 +3,15 @@
 namespace App\Controller;
 
 use App\Entity\Entry;
-use App\Entity\EntryChunk;
 use App\Entity\GuestLink;
 use App\Form\UploadFormType;
-use App\Repository\EntryRepository;
 use App\Repository\GuestLinkRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Service\UploadsHandler;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\File\Stream;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Uid\Ulid;
 
 final class UploadController extends AbstractController
@@ -25,15 +20,14 @@ final class UploadController extends AbstractController
 
     public function __construct
     (
-        private EntityManagerInterface $em,
-        private GuestLinkRepository    $guestLinksRepo,
-        private EntryRepository        $entriesRepo,
+        private readonly GuestLinkRepository $guestLinksRepo,
+        private readonly UploadsHandler      $uploadsHandler,
     )
     {
     }
 
     #[Route('/g/{guestLinkUniqId}', name: 'pico_upload_file_with_guest_link', methods: ['GET', 'POST', 'PUT'])]
-    public function guestLinkUpload(RequestStack $requestStack, SluggerInterface $slugger, Ulid $guestLinkUniqId, bool $inline_form = false): Response
+    public function guestLinkUpload(RequestStack $requestStack, Ulid $guestLinkUniqId, bool $inline_form = false): Response
     {
         $foundGuestLink = $this->guestLinksRepo->findOneBy(['uniqLinkId' => $guestLinkUniqId /*, 'disabled' => false*/]);
 
@@ -50,15 +44,12 @@ final class UploadController extends AbstractController
             ]);
         }
 
-        return $this->upload($requestStack, $slugger, $inline_form, $foundGuestLink);
+        return $this->upload($requestStack, $inline_form, $foundGuestLink);
     }
 
 
-    /*
-     * FIXME: This method already needs refactoring
-     */
     #[Route('/upload', name: 'pico_upload_file', methods: ['POST', 'PUT', 'GET'])]
-    public function upload(RequestStack $requestStack, SluggerInterface $slugger, bool $inline_form = false, ?GuestLink $guestLink = null): Response
+    public function upload(RequestStack $requestStack, bool $inline_form = false, ?GuestLink $guestLink = null): Response
     {
         $request = $requestStack->getCurrentRequest();
         $isAdmin = $this->isGranted('ROLE_ADMIN');
@@ -104,7 +95,7 @@ final class UploadController extends AbstractController
         //
         $twigCtx = [
             'showSubmitBtn' => true,
-            'showProgressBar' => false,
+            'showProgressBar' => true,
             'pageTitle' => $isAdmin || $guestLink !== null ? 'Upload' : null,
             'guestLinkUniqId' => $guestLink?->getUniqLinkId()->toBase58(),
         ];
@@ -134,71 +125,20 @@ final class UploadController extends AbstractController
 
             if ($uploadForm->isSubmitted()) {
                 if ($uploadForm->isValid()) {
-                    /** @var UploadedFile $uploadedFile */
-                    $uploadedFile = $uploadForm->get('file')->getData();
                     $note = $uploadForm->has('note') ? $uploadForm->get('note')->getData() : null;
-                    if ($uploadedFile) {
-                        $originalFilename = pathinfo($uploadedFile->getClientOriginalName(), PATHINFO_FILENAME);
-                        $safeFilename = $slugger->slug($originalFilename);
+                    $autoExpireAt = $uploadForm->has('auto_expire') ? $uploadForm->get('auto_expire')->getData() : null;
+                    $entry = $this->uploadsHandler->processUploadedFile($uploadForm->get('file')->getData(), $guestLink, $note, $autoExpireAt);
+                    $success = $entry instanceof Entry;
 
-                        $entry = (new Entry())
-                            ->setUniqLinkId(new Ulid())
-                            ->setNote($note)
-                            ->setSize($uploadedFile->getSize())
-                            ->setFilename($originalFilename . '.' . $uploadedFile->getClientOriginalExtension())
-                            ->setSafeFilename($safeFilename . '.' . $uploadedFile->getClientOriginalExtension())
-                            ->setContentType($uploadedFile->getMimeType())
-                            ->setGuestLink(null);
-
-                        // normalizing fileExpirationDate
-                        $chosenFileExpiration = $uploadForm->get('auto_expire')?->getData();
-                        // null -> never or not available
-                        if( $chosenFileExpiration !== null )
-                        {
-                            $refNow = new \DateTimeImmutable('today');
-                            $expirationModifier = str_replace('-', ' ', $chosenFileExpiration);
-                            $newExpirationDateTime = $refNow->modify($expirationModifier);
-                            $entry->setExpiresAt($newExpirationDateTime);
-                        }
-
-
-                        $this->em->beginTransaction();
-                        $success = false;
-                        try {
-                            $contentsStrm = new Stream($uploadedFile->getPathname());
-                            $dataChunk = (new EntryChunk())
-                                ->setEntry($entry)
-                                ->setDataChunk($contentsStrm->getContent());
-
-                            $this->em->persist($entry);
-                            $this->em->persist($dataChunk);
-                            //
-                            if ($guestLink !== null) {
-                                $guestLink->getId() === null and $this->em->persist($guestLink);
-                                $entry->setGuestLink($guestLink);
-                                $this->updateCurrentUploadsCounter($guestLink);
-                            }
-                            $this->em->flush();
-                            $this->em->commit();
-                            $success = true;
-                        } catch (\Throwable $err) {
-                            $this->em->rollback();
-                            throw $err;
-                        } finally {
-                            unset($contentsStrm, $dataChunk);
-                        }
-
-
-                        if ($success) {
-                            $this->addFlash('success', 'Upload complete!');
-                            $request->getSession()->set(self::SESSIONKEY_PREV_UPLOADED_METADATA, [$entry->getUniqLinkId(), $entry->getSafeFilename()]);
-                            return $this->redirectToRoute($redirRoute, $routeParams);
-                        }
-
-                        $this->addFlash('error', 'File Upload failed :/');
-                        $routeParams = ['upload_failure' => 1];
+                    if ($success) {
+                        $this->addFlash('success', 'Upload complete!');
+                        $request->getSession()->set(self::SESSIONKEY_PREV_UPLOADED_METADATA, [$entry->getUniqLinkId(), $entry->getSafeFilename()]);
                         return $this->redirectToRoute($redirRoute, $routeParams);
                     }
+
+                    $this->addFlash('error', 'File Upload failed :/');
+                    $routeParams = ['upload_failure' => 1];
+                    return $this->redirectToRoute($redirRoute, $routeParams);
                 }
                 $resp->setStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY);
             }
@@ -234,13 +174,5 @@ final class UploadController extends AbstractController
             'showEditBtn' => $showEditLink,
             'showUploadAnotherBtn' => true,
         ]);
-    }
-
-    private function updateCurrentUploadsCounter(GuestLink $guestLink): void
-    {
-        // TODO: Maybe better with onKernelFinishRequest/onKernelTerminate
-        $totalUploads = $this->entriesRepo->count(['guestLink' =>$guestLink]);
-        $totalUploads++;
-        $guestLink->setCurrentUploads($totalUploads);
     }
 }
