@@ -76,8 +76,8 @@ final class FilesControllerTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertPageTitleContains('– Edit File');
         self::assertSelectorCount(1, "form[action='{$url}']");
-        self::assertSelectorCount(1, "#entry_filename"); // filename form-field
-        self::assertInputValueSame('entry[filename]', 'btc_wallet.dat');
+        self::assertSelectorCount(1, "#edit_entry_filename"); // filename form-field
+        self::assertInputValueSame('edit_entry[filename]', 'btc_wallet.dat');
     }
 
     public function testConfirmDeleteAction(): void
