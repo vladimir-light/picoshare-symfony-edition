@@ -10,12 +10,12 @@
         "doctrine/dbal": "^3.10.4",
         "doctrine/doctrine-bundle": "^2.18.2",
         "doctrine/doctrine-migrations-bundle": "^3.7",
-        "doctrine/orm": "^3.6",
+        "doctrine/orm": "^3.6.1",
         "gedmo/doctrine-extensions": "^3.22",
         "knplabs/knp-time-bundle": "^2.5",
         "phpdocumentor/reflection-docblock": "^5.6.6",
-        "phpstan/phpdoc-parser": "^2.3",
-        "symfony/apache-pack": "*",
+        "phpstan/phpdoc-parser": "^2.3.2",
+        "symfony/apache-pack": ">=1.0.1",
         "symfony/asset": "7.4.*",
         "symfony/console": "7.4.*",
         "symfony/dotenv": "7.4.*",
@@ -27,7 +27,6 @@
         "symfony/mailer": "7.4.*",
         "symfony/mime": "7.4.*",
         "symfony/monolog-bundle": "^3.0|^4.0.1",
-        "symfony/process": "7.4.*",
         "symfony/property-access": "7.4.*",
         "symfony/property-info": "7.4.*",
         "symfony/runtime": "7.4.*",
@@ -41,8 +40,8 @@
         "symfony/validator": "7.4.*",
         "symfony/web-link": "7.4.*",
         "symfony/yaml": "7.4.*",
-        "twig/extra-bundle": "^2.12|^3.22.2",
-        "twig/twig": "^2.12|^3.22.2",
+        "twig/extra-bundle": "^2.12|^3.23.0",
+        "twig/twig": "^2.12|^3.23.0",
         "ua-parser/uap-php": "^3.10"
     },
     "config": {
@@ -108,13 +107,13 @@
         }
     },
     "require-dev": {
-        "phpunit/phpunit": "^11.5.46",
+        "phpunit/phpunit": "^11.5.50",
         "symfony/browser-kit": "7.4.*",
         "symfony/css-selector": "7.4.*",
         "symfony/debug-bundle": "7.4.*",
         "symfony/maker-bundle": "^1.65.1",
         "symfony/stopwatch": "7.4.*",
         "symfony/web-profiler-bundle": "7.4.*",
-        "zenstruck/foundry": "^2.8"
+        "zenstruck/foundry": "^2.8.6"
     }
 }
