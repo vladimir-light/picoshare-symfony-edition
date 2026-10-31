@@ -30,7 +30,7 @@ class PicoClearExpiredEntriesCommand extends Command
         parent::__construct();
     }
 
-    protected function initialize(InputInterface $input, OutputInterface $output)
+    protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         $this->entriesRepos = $this->em->getRepository(Entry::class);
     }

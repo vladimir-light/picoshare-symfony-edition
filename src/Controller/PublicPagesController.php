@@ -5,6 +5,7 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\Cache;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class PublicPagesController extends AbstractController
@@ -25,11 +26,10 @@ final class PublicPagesController extends AbstractController
         ]);
     }
 
+    #[Cache(maxage: 86400, public: true)]
     public function singleBlockSectionAbout(RequestStack $requestStack): Response
     {
         $resp = $this->renderBlock('public/about.html.twig', 'block_about', []);
-        $resp->setPublic();
-        $resp->setMaxAge(86400);
 
         return $resp;
     }
